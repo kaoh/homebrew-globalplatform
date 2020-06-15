@@ -37,8 +37,8 @@ You need a Mac or a VirtualBox with MacOS. The VirtualBox must be reached by scp
 The `test-bot` is used for creating the bottle inside the started environment.
 
 ~~~
-# Deletes the tap, necessary if the same Docker instance is used for build retries, otherwise the updated remote is not used, a git pull might also be sufficient
-rm -rf .linuxbrew/Homebrew/Library/Taps/kaoh
+# Deletes the tap, necessary if the same Docker instance is used for build retries, otherwise the updated remote is not used, a git pull might also be sufficient to get the updates
+brew untap kaoh/globalplatform
 brew test-bot --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform --bintray-org=kaoh --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
 ~~~
 

@@ -7,6 +7,7 @@ class Globalplatform < Formula
 
   depends_on "cmake" => :build
   depends_on "cmocka" => :build
+  depends_on "doxygen" => :build
   depends_on "pandoc" => :build
   depends_on "pkg-config" => :build
   depends_on "openssl@1.1"
