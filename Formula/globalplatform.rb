@@ -26,6 +26,11 @@ class Globalplatform < Formula
   end
 
   test do
-    system "#{bin}/gpshell", "--help"
+    (testpath/"test-script.txt").write <<~EOS
+      enable_trace
+      establish_context
+      release_context
+    EOS
+    system "#{bin}/gpshell", "test-script.txt"
   end
 end

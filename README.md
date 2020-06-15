@@ -4,9 +4,18 @@ This is a [Homebrew Tap](https://docs.brew.sh/Taps) for the [GlobalPlatform](htt
 
 # How do I install these formulae?
 
-`brew install kaoh/globalplatform/<formula>`
+`brew install kaoh/globalplatform/globalplatform`
 
-Or `brew tap kaoh/globalplatform` and then `brew install <formula>`.
+Or `brew tap kaoh/globalplatform` and then `brew install globalplatform`.
+
+# Tagging GlobalPlatform
+
+The formulae is referencing a tag version. It might be necessary to delete and recreate this tag during the release of a new beta version in a beta formulae:
+
+    git tag -d 2.0.0-b1
+    git push --delete origin 2.0.0-b1
+    git tag 2.0.0-b1
+    git push origin 2.0.0-b1
 
 # Creating Bottles
 
@@ -41,6 +50,10 @@ The `test-bot` is used for creating the bottle inside the started environment.
 brew untap kaoh/globalplatform
 brew test-bot --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform --bintray-org=kaoh --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
 ~~~
+
+__NOTE__: If thee GlobalPlatform tag has deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted without
+
+    rm -r $(brew --cache)/globalplatform--git
 
 ## Uploading Bottles
 
