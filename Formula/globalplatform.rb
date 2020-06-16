@@ -31,6 +31,7 @@ class Globalplatform < Formula
       establish_context
       release_context
     EOS
+    system "pcscd"
     system "#{bin}/gpshell", "test-script.txt"
   end
 end
