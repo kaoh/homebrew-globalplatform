@@ -23,7 +23,7 @@ The blog on https://jonathanchang.org/blog/maintain-your-own-homebrew-repository
 
 ## Bintray
 
-The account https://bintray.com/kaoh/bottles-globalplatform is used.
+The account https://bintray.com/kaoh/bottles-globalplatform is used. A repository `globalplatform` and a package `globalplatform` have been created.
 
 ## Environment
 
@@ -51,7 +51,7 @@ brew untap kaoh/globalplatform
 brew test-bot --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform --bintray-org=kaoh --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
 ~~~
 
-__NOTE__: If thee GlobalPlatform tag has deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted without
+__NOTE__: If the GlobalPlatform tag has deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted without
 
     rm -r $(brew --cache)/globalplatform--git
 
@@ -68,6 +68,8 @@ The created bottle files (`.bottle.tar.gz` and `.json`)  must be collected. The 
     scp -P2222 user@localhost:\*.{json,tar.gz} .
 
 ## Upload
+
+__NOTE:__ `HOMEBREW_BINTRAY_USER` and `HOMEBREW_BINTRAY_KEY` must be set in the environment before this can be executed. Look into "Edit Profile" ->  "API Key".
 
    brew pr-upload --bintray-org=kaoh --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform
 
