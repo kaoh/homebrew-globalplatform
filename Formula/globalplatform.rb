@@ -5,6 +5,12 @@ class Globalplatform < Formula
   url "https://github.com/kaoh/globalplatform.git", :tag => "2.0.0-b1"
   version "2.0.0-b1"
 
+  bottle do
+    root_url "https://dl.bintray.com/kaoh/bottles-globalplatform"
+    cellar :any_skip_relocation
+    sha256 "55f4eeac5c73e9ddd0db911180730583fa9fb13e82d8d3fc73ebc24e4bc97927" => :x86_64_linux
+  end
+
   depends_on "cmake" => :build
   depends_on "cmocka" => :build
   depends_on "doxygen" => :build
