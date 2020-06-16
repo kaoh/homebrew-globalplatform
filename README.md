@@ -8,14 +8,23 @@ This is a [Homebrew Tap](https://docs.brew.sh/Taps) for the [GlobalPlatform](htt
 
 Or `brew tap kaoh/globalplatform` and then `brew install globalplatform`.
 
+For Linux also look at the instructions at https://docs.brew.sh/Homebrew-on-Linux
+
 # Tagging GlobalPlatform
 
-The formulae is referencing a tag version. It might be necessary to delete and recreate this tag during the release of a new beta version in a beta formulae:
+The formulae is referencing a tag version.
 
-    git tag -d 2.0.0-b1
-    git push --delete origin 2.0.0-b1
-    git tag 2.0.0-b1
-    git push origin 2.0.0-b1
+~~~
+git tag 2.0.0-b1
+git push origin 2.0.0-b1
+~~~
+
+It might be necessary to delete and recreate this tag during the release of a new beta version in a beta formulae:
+
+~~~
+git tag -d 2.0.0-b1
+git push --delete origin 2.0.0-b1
+~~~  
 
 # Creating Bottles
 
