@@ -60,7 +60,7 @@ brew untap kaoh/globalplatform
 brew test-bot --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform --bintray-org=kaoh --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
 ~~~
 
-__NOTE__: If the GlobalPlatform tag has deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted without
+__NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted without
 
     rm -r $(brew --cache)/globalplatform--git
 

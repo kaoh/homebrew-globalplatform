@@ -37,7 +37,7 @@ class Globalplatform < Formula
       establish_context
       release_context
     EOS
-    system "pcscd"
+    system "pcscd" unless OS.mac?
     system "#{bin}/gpshell", "test-script.txt"
   end
 end
