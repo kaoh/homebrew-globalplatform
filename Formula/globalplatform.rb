@@ -1,3 +1,5 @@
+require "open3"
+
 class Globalplatform < Formula
   desc "C library + command-line for Open- / GlobalPlatform smart cards"
   homepage "https://kaoh.github.io/globalplatform/"
@@ -38,6 +40,11 @@ class Globalplatform < Formula
       release_context
     EOS
     system "pcscd" unless OS.mac?
-    system "#{bin}/gpshell", "test-script.txt"
+    system "#{bin}/gpshell", "test-script.txt" unless OS.mac?
+    if OS.mac?
+      oe, status = Open3.capture2e("#{bin}/gpshell", "test-script.txt")
+      puts oe
+      assert status.success? || (oe =~ /0x8010001D/)
+    end
   end
 end
