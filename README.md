@@ -48,7 +48,7 @@ docker run -it --name=brew homebrew/brew
 
 ### MacOS
 
-You need a Mac or a VirtualBox with MacOS. The VirtualBox must be reached by scp on the host port 2222.
+You need a Mac or a VirtualBox with MacOS. The VirtualBox must be reached by scp on the host port 2222. Open a terminal in the user directory.
 
 ## Bottling
 
@@ -66,7 +66,7 @@ __NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same
 
 ## Uploading Bottles
 
-The created bottle files (`.bottle.tar.gz` and `.json`)  must be collected. The naming should be identical, i.e. use the same revision of 0 (if not explicitly intended). `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty.
+The created bottle files (`.bottle.tar.gz` and `.json`)  must be collected. The naming should be identical, i.e. use the same revision of 0 (if not explicitly intended). `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. Remove the revision if necessary from the `tar.gz` and the `json`.  In the `json` file also remove the `revision` attribute if necessary.
 
 ### Linux
 
@@ -75,6 +75,8 @@ The created bottle files (`.bottle.tar.gz` and `.json`)  must be collected. The 
 ### MacOS VirtualBox
 
     scp -P2222 user@localhost:\*.{json,tar.gz} .
+
+__NOTE:__ Take here instead of of `user` the proper MacOS username.
 
 ## Upload
 
