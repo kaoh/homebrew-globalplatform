@@ -48,12 +48,15 @@ docker run -it --name=brew homebrew/brew
 
 Inside the docker image install pcsc-lite:
 
-    apt-get install pcscd
+    apt-get update
+    apt-get install pkg-config pcscd libpcsclite-dev
 
-__NOTE:__ It is not possible to link against the version of `pcsc-lite` coming with Homebrew. Otherwise the `rpath` or `runpath` when loading the dxynamic libraries will pick the Homebrew version not the version installed in the system.
+__NOTE:__ It is not possible to link against the version of `pcsc-lite` coming with Homebrew. Otherwise the `rpath` or `runpath` when loading the dynamic libraries will pick the Homebrew version not the version installed in the system.
 The Homebrew version is not a functional version and you will see the error when running gpshell:
 
 > establish_context failed with error 0x8010001D (Service not available.)
+
+Also `pkg-config` must not be used from Homebrew, it will interfer with the build process and not point to the system version of `pcsc-lite`.
 
 ### MacOS
 
