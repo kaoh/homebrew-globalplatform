@@ -46,6 +46,15 @@ docker pull homebrew/brew
 docker run -it --name=brew homebrew/brew
 ~~~
 
+Inside the docker image install pcsc-lite:
+
+    apt-get install pcscd
+
+__NOTE:__ It is not possible to link against the version of `pcsc-lite` coming with Homebrew. Otherwise the `rpath` or `runpath` when loading the dxynamic libraries will pick the Homebrew version not the version installed in the system.
+The Homebrew version is not a functional version and you will see the error when running gpshell:
+
+> establish_context failed with error 0x8010001D (Service not available.)
+
 ### MacOS
 
 You need a Mac or a VirtualBox with MacOS. The VirtualBox must be reached by scp on the host port 2222. Open a terminal in the user directory.
