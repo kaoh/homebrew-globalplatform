@@ -25,6 +25,7 @@ class Globalplatform < Formula
   uses_from_macos "zlib"
 
   def install
+    ENV.deparallelize
     system "cmake", ".", "-DTESTING=ON", "-DDEBUG=ON", *std_cmake_args
     system "make", "install"
     system "make", "test"
