@@ -40,7 +40,7 @@ Arch Linux:
 
 Consult your distribution for any other steps, e.g. to enable `pcsc-lite` as a service if this was forgotten by the package maintainer and is not included here already.
 
-### Disable Homebrew's Version of `pcsc-lite`
+### Remove Homebrew's Version of `pcsc-lite`
 
 If the version of `pcsc-lite` does not match the version of your system you might
 get:
@@ -58,7 +58,9 @@ sudo pcscd --version
 
 Under Linux the Homebrew version of `pcsc-lite` must be unlinked:
 
-    brew unlink pcsc-lite
+    brew remove --ignore-dependencies pcsc-lite
+
+__NOTE:__ This will remove the version, in case other package are requiring it they will also fallback to the distribution's version. If `pcsc-lite` is reinstalled this step must be repeated if there still is an internal protocol version mismatch.
 
 # Developer Information
 
