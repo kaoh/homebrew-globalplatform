@@ -1,6 +1,10 @@
 # Summary
 
-This is a [Homebrew Tap](https://docs.brew.sh/Taps) for the [GlobalPlatform](https://github.com/kaoh/globalplatform) C library and GPShell command line shell.
+This is a [Homebrew Tap](https://docs.brew.sh/Taps) for the [GlobalPlatform](https://kaoh.github.io/globalplatform/) C library and GPShell command line shell.
+
+Please read also the [manual of GPShell]( https://github.com/kaoh/globalplatform/blob/master/gpshell/src/gpshell.1.md) if you are interested in the command line.
+
+Consult the [API documentation](https://kaoh.github.io/globalplatform/api/index.html) if you are planning to use this as a library.
 
 # Installation
 
