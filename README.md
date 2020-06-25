@@ -143,9 +143,13 @@ __NOTE:__ Take here instead of of `user` the proper MacOS username.
 
 __NOTE:__ `HOMEBREW_BINTRAY_USER` and `HOMEBREW_BINTRAY_KEY` must be set in the environment before this can be executed. Look into "Edit Profile" -> "API Key".
 
+Go to the directory with the collected bottles and run:
+
    brew pr-upload --bintray-org=kaoh --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform
 
 This command also updates the formulae with a `bottle do` section.
+
+__NOTE:__ If `cellar :any_skip_relocation` is used in the formulae by Homebrew then the program will not run, replace it with `cellar :any`.
 
 ### Push Updated Formulae
 
