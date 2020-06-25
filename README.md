@@ -102,6 +102,7 @@ A docker instances can be used for running the bottling command.
 docker rm brew
 docker pull homebrew/brew
 docker run -it --name=brew homebrew/brew
+mkdir build
 ~~~
 
 #### MacOS
@@ -124,11 +125,13 @@ __NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same
 
 ### Uploading Bottles
 
-The created bottle files (`.bottle.tar.gz` and `.json`)  must be collected. The naming should be identical, i.e. use the same revision of 0 (if not explicitly intended). `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. Remove the revision if necessary from the `tar.gz` and the `json`.  In the `json` file also remove the `revision` attribute if necessary.
+The created bottle files (`.bottle.tar.gz` and `.json`)  must be collected. The naming should be identical, i.e. use the same revision of 0 (if not explicitly intended).   `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. If a previous bottle of the same version exist the name will include a new revision. For beta releases it might be possible to remove the revision if necessary from the `tar.gz` and the `json`.  In the `json` file also remove the `revision` attribute if necessary.
+
+Create an empty directory for collecting the bottles to upload.
 
 #### Linux
 
-    docker cp brew:/home/linuxbrew/. .
+    docker cp brew:/home/linuxbrew/build/. .
 
 #### MacOS VirtualBox
 
@@ -138,7 +141,7 @@ __NOTE:__ Take here instead of of `user` the proper MacOS username.
 
 ### Upload
 
-__NOTE:__ `HOMEBREW_BINTRAY_USER` and `HOMEBREW_BINTRAY_KEY` must be set in the environment before this can be executed. Look into "Edit Profile" ->  "API Key".
+__NOTE:__ `HOMEBREW_BINTRAY_USER` and `HOMEBREW_BINTRAY_KEY` must be set in the environment before this can be executed. Look into "Edit Profile" -> "API Key".
 
    brew pr-upload --bintray-org=kaoh --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform
 
