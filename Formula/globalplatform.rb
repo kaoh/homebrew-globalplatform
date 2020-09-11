@@ -3,8 +3,8 @@ require "open3"
 class Globalplatform < Formula
   desc "C library + command-line for Open- / GlobalPlatform smart cards"
   homepage "https://kaoh.github.io/globalplatform/"
+  url "https://github.com/kaoh/globalplatform.git", tag: "2.0.0-b3"
   head "https://github.com/kaoh/globalplatform.git"
-  url "https://github.com/kaoh/globalplatform.git", :tag => "2.0.0-b3"
   version "2.0.0-b3"
 
   bottle do
@@ -49,7 +49,7 @@ class Globalplatform < Formula
     if OS.mac?
       oe, status = Open3.capture2e("#{bin}/gpshell", "test-script.txt")
       puts oe
-      assert status.success? || (oe =~ /0x8010001D/)
+      assert status.success? || (oe.include? "0x8010001D")
     end
   end
 end
