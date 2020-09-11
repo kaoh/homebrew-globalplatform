@@ -3,9 +3,9 @@ require "open3"
 class Globalplatform < Formula
   desc "C library + command-line for Open- / GlobalPlatform smart cards"
   homepage "https://kaoh.github.io/globalplatform/"
+  version "2.0.0-b3"
   url "https://github.com/kaoh/globalplatform.git", tag: "2.0.0-b3"
   head "https://github.com/kaoh/globalplatform.git"
-  version "2.0.0-b3"
 
   bottle do
     root_url "https://dl.bintray.com/kaoh/bottles-globalplatform"
@@ -19,8 +19,8 @@ class Globalplatform < Formula
   depends_on "cmocka" => :build
   depends_on "doxygen" => :build
   depends_on "ghostscript" => :build
-  depends_on "graphviz" => :build
   depends_on "groff" => :build
+  depends_on "graphviz" => :build
   depends_on "pandoc" => :build
   depends_on "pkg-config" => :build
   depends_on "openssl@1.1"
@@ -49,7 +49,7 @@ class Globalplatform < Formula
     if OS.mac?
       oe, status = Open3.capture2e("#{bin}/gpshell", "test-script.txt")
       puts oe
-      assert status.success? || (oe.include? "0x8010001D")
+      assert_match(/0x8010001D/, oe)
     end
   end
 end
