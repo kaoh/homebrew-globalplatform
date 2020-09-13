@@ -103,6 +103,7 @@ docker rm brew
 docker pull homebrew/brew
 docker run -it --name=brew homebrew/brew
 mkdir build
+cd build
 ~~~
 
 #### MacOS
