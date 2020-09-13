@@ -9,10 +9,10 @@ class Globalplatform < Formula
 
   bottle do
     root_url "https://dl.bintray.com/kaoh/bottles-globalplatform"
-    cellar :any
-    rebuild 1
-    sha256 "fe453af74f89d99c4d0e909c4f6570d22c5fb49cee7b9e5ac4c020f51cb395fd" => :high_sierra
-    sha256 "0cb5830f94fa88535fb1eb5f75013bbf6075a75c41663d4dc054e561d6dfea83" => :x86_64_linux
+    cellar :any_skip_relocation
+    rebuild 2
+    sha256 "0dcbc93596e5b02c40b44b1d39fdc6567037d47179bed1d482501abe8a101545" => :high_sierra
+    sha256 "04c314e1f7692262429ec28b9d728137280cdd2878cad0f57605af90847f5da0" => :x86_64_linux
   end
 
   depends_on "cmake" => :build
