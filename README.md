@@ -122,7 +122,9 @@ brew test-bot --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform --bi
 
 __NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted without
 
-    rm -r $(brew --cache)/globalplatform--git
+~~~
+rm -r $(brew --cache)/globalplatform--git
+~~~
 
 ### Uploading Bottles
 
@@ -146,11 +148,14 @@ __NOTE:__ `HOMEBREW_BINTRAY_USER` and `HOMEBREW_BINTRAY_KEY` must be set in the 
 
 Go to the directory with the collected bottles and run:
 
-   brew pr-upload --bintray-org=kaoh --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform
+~~~
+brew pr-upload --bintray-org=kaoh --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform
+~~~
 
 This command also updates the formulae with a `bottle do` section.
 
-__NOTE:__ If `cellar :any_skip_relocation` is used in the formulae by Homebrew then the program will not run, replace it with `cellar :any`.
+__NOTE:__ If `cellar :any_skip_relocation` is used in the formulae by Homebrew then the program will not run, replace it with `cellar :any`
+and execute a `git commit -a -m "using cellar any"` before the `git push`.
 
 ### Push Updated Formulae
 
