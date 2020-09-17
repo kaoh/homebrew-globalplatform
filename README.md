@@ -85,7 +85,7 @@ It might be necessary to delete and recreate this tag during the release of a ne
 ~~~
 git tag -d 2.0.0-b1
 git push --delete origin 2.0.0-b1
-~~~  
+~~~
 
 ## Creating Bottles
 
@@ -118,12 +118,13 @@ You need a Mac or a VirtualBox with MacOS. The VirtualBox must be reached by scp
 The `test-bot` is used for creating the bottle inside the started environment.
 
 ~~~
-# Deletes the tap, necessary if the same Docker instance is used for build retries, otherwise the updated remote is not used, a git pull might also be sufficient to get the updates
+# Deletes the tap to have a clean state
 brew untap kaoh/globalplatform
+brew remove globalplatform
 brew test-bot --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform --bintray-org=kaoh --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
 ~~~
 
-__NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted without
+__NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted with
 
 ~~~
 rm -r $(brew --cache)/globalplatform--git
