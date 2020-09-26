@@ -87,6 +87,12 @@ git tag -d 2.0.0-b1
 git push --delete origin 2.0.0-b1
 ~~~
 
+Update the version number in the Homwbrew formulae. Check the formulae for correctness:
+
+~~~
+brew audit --strict --online globalplatform
+~~~
+
 ## Creating Bottles
 
 The blog on https://jonathanchang.org/blog/maintain-your-own-homebrew-repository-with-binary-bottles/ describes how to create bottles for own taps.

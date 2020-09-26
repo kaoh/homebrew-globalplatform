@@ -4,7 +4,7 @@ class Globalplatform < Formula
   desc "C library + command-line for Open- / GlobalPlatform smart cards"
   homepage "https://kaoh.github.io/globalplatform/"
   url "https://github.com/kaoh/globalplatform.git", tag: "2.0.0"
-  version "2.0.0"
+  #  version "2.0.0"
   head "https://github.com/kaoh/globalplatform.git"
 
   bottle do
