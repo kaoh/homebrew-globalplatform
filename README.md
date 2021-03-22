@@ -15,7 +15,17 @@ Consult the [API documentation](https://kaoh.github.io/globalplatform/api/index.
 
 Or `brew tap kaoh/globalplatform` and then `brew install globalplatform`.
 
-For Linux also look at the instructions at https://docs.brew.sh/Homebrew-on-Linux
+For Linux also look at the instructions at [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux)
+
+## MacOS M1 
+
+homebrew on MacOS has problems when installing the project due to problems of the unsatisfied [GHC dependency](https://doesitarm.com/formula/ghc/). 
+This seems to be a requirement of the homebrew build system and as long as no upstream support is available use this workaround:
+
+~~~shell
+arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+arch -x86_64 /usr/local/bin/brew install kaoh/globalplatform/globalplatform 
+~~~
 
 ## Linux `pcsc-lite`
 
