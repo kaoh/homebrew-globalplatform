@@ -174,6 +174,18 @@ Example:
    end
 ~~~
 
+Check the correctness of the edit:
+
+~~~shell
+brew style Formula/globalplatform.rb
+~~~
+
+Formatting problems can be fixed with:
+
+~~~shell
+brew style --fix Formula/globalplatform.rb
+~~~
+
 ### Tagging
 
 Tag the formulae in the this repository with the same version like used for globalplatform.
