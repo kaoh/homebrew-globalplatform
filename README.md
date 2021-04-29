@@ -17,14 +17,14 @@ Or `brew tap kaoh/globalplatform` and then `brew install globalplatform`.
 
 For Linux also look at the instructions at [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux)
 
-## MacOS M1 
+## MacOS M1
 
-homebrew on MacOS has problems when installing the project due to problems of the unsatisfied [GHC dependency](https://doesitarm.com/formula/ghc/). 
+homebrew on MacOS has problems when installing the project due to problems of the unsatisfied [GHC dependency](https://doesitarm.com/formula/ghc/).
 This seems to be a requirement of the homebrew build system and as long as no upstream support is available use this workaround:
 
 ~~~shell
 arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-arch -x86_64 /usr/local/bin/brew install kaoh/globalplatform/globalplatform 
+arch -x86_64 /usr/local/bin/brew install kaoh/globalplatform/globalplatform
 ~~~
 
 ## Linux `pcsc-lite`
@@ -37,23 +37,31 @@ The distribution's version of `pcscd` should be installed:
 
 Ubuntu/Debian:
 
+~~~shell
     apt-get install pcscd
+~~~
 
 Fedora:
 
+~~~shell
     sudo dnf install ccid pcsc-lite
     sudo systemctl enable pcscd
     sudo systemctl start pcscd
+~~~
 
 RedHat:
 
+~~~shell
     yum install pcsc-lite pcsc-lite-ccid pcsc-lite-libs
+~~~
 
 Arch Linux:
 
+~~~shell
         pacman -S ccid    
         systemctl enable pcsclite
         systemctl start pcsclite
+~~~
 
 Consult your distribution for any other steps, e.g. to enable `pcsc-lite` as a service if this was forgotten by the package maintainer and is not included here already.
 
@@ -68,14 +76,16 @@ In this case the Homebrew's version must be unlinked if there is no chance to up
 
 To check the version compare the versions with:
 
-~~~
+~~~shell
 sudo $(brew --prefix pcsc-lite)/sbin/pcscd --version
 sudo pcscd --version
 ~~~
 
 Under Linux the Homebrew version of `pcsc-lite` must be unlinked:
 
+~~~shell
     brew remove --ignore-dependencies pcsc-lite
+~~~
 
 __NOTE:__ This will remove the version, in case other package are requiring it they will also fallback to the distribution's version. If `pcsc-lite` is reinstalled this step must be repeated if there still is an internal protocol version mismatch.
 
@@ -85,21 +95,21 @@ __NOTE:__ This will remove the version, in case other package are requiring it t
 
 The formulae is referencing a tag version.
 
-~~~
+~~~shell
 git tag 2.0.0-b1
 git push origin 2.0.0-b1
 ~~~
 
 It might be necessary to delete and recreate this tag during the release of a new beta version in a beta formulae:
 
-~~~
+~~~shell
 git tag -d 2.0.0-b1
 git push --delete origin 2.0.0-b1
 ~~~
 
-Update the version number in the Homwbrew formulae. Check the formulae for correctness:
+Update the version number in the Homebrew formulae. Check the formulae for correctness:
 
-~~~
+~~~shell
 brew audit --strict --online globalplatform
 ~~~
 
@@ -107,17 +117,15 @@ brew audit --strict --online globalplatform
 
 The blog on https://jonathanchang.org/blog/maintain-your-own-homebrew-repository-with-binary-bottles/ describes how to create bottles for own taps.
 
-### Bintray
-
-The account https://bintray.com/kaoh/bottles-globalplatform is used. A repository `globalplatform` and a package `globalplatform` have been created.
+Because Bintray has shut down its service, now GitHub is used directly.
 
 ### Environment
 
 #### Linux
 
-A docker instances can be used for running the bottling command.
+A Docker instances can be used for running the bottling command.
 
-~~~
+~~~shell
 docker rm brew
 docker pull homebrew/brew
 docker run -it --name=brew homebrew/brew
@@ -127,23 +135,52 @@ cd build
 
 #### MacOS
 
-You need a Mac or a VirtualBox with MacOS. The VirtualBox must be reached by scp on the host port 2222. Open a terminal in the user directory.
+Homebrew can be directly executed in MacOS.
+
+__NOTE:__ For testing the installation later the Homebrew cellar and tap must be removed again to have a clean environment.
 
 ### Bottling
 
 The `test-bot` is used for creating the bottle inside the started environment.
 
-~~~
+~~~shell
 # Deletes the tap to have a clean state
-brew untap kaoh/globalplatform
 brew remove globalplatform
-brew test-bot --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform --bintray-org=kaoh --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
+brew untap kaoh/globalplatform
+brew test-bot --root-url=https://github.com/kaoh/homebrew-globalplatform/releases/download/2.1.0 --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
 ~~~
+
+Adjust the release tag at the end of the `root-url` option.
 
 __NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted with
 
-~~~
+~~~shell
 rm -r $(brew --cache)/globalplatform--git
+~~~
+
+## Updating Formulae with Bottle References
+
+The updated formulaes from Linux and MacOS must be merged together. The git repository in the
+Linux Docker container is `/home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform`.
+Under MacOS the location is `/usr/local/Homebrew/Library/Taps/kaoh/homebrew-globalplatform`.
+
+Example:
+
+~~~ruby
+   bottle do
+     root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.1.0"
+     sha256 cellar: :any, catalina: "23f4a097e12cacbf3a1ecc6de002bb8a6b1965ab9c93702ace2af78270f148d5"
+     sha256 cellar: :any_skip_relocation, x86_64_linux: "22a961043e2c4cb62d9b92a5856fbc74c05fd0e83b838a73ffa329462719de0a"
+   end
+~~~
+
+### Tagging
+
+Tag the formulae in the this repository with the same version like used for globalplatform.
+
+~~~shell
+git tag 2.1.0
+git push origin 2.1.0
 ~~~
 
 ### Uploading Bottles
@@ -154,35 +191,19 @@ Create an empty directory for collecting the bottles to upload.
 
 #### Linux
 
+Copy the build bottle to the current directory:
+
+~~~shell
     docker cp brew:/home/linuxbrew/build/. .
+~~~
 
-#### MacOS VirtualBox
-
-    scp -P2222 user@localhost:\*.{json,tar.gz} .
+#### MacOS
 
 __NOTE:__ Take here instead of of `user` the proper MacOS username.
 
-### Upload
+### Upload Bottles
 
-__NOTE:__ `HOMEBREW_BINTRAY_USER` and `HOMEBREW_BINTRAY_KEY` must be set in the environment before this can be executed. Look into "Edit Profile" -> "API Key".
-
-Go to the directory with the collected bottles and run:
-
-~~~
-brew pr-upload --bintray-org=kaoh --root-url=https://dl.bintray.com/kaoh/bottles-globalplatform
-~~~
-
-This command also updates the formulae with a `bottle do` section.
-
-__NOTE:__ If `cellar :any_skip_relocation` is used in the formulae by Homebrew then the program will not run, replace it with `cellar :any`
-and execute a `git commit -a -m "using cellar any"` before the `git push`.
-
-### Push Updated Formulae
-
-```
-cd /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform
-git push
-```
+In the release section this repository upload the `tar.gz` files. Replace the double '--' by just one `-`.
 
 ## Formulae Documentation
 
