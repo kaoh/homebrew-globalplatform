@@ -91,7 +91,7 @@ __NOTE:__ This will remove the version, in case other package are requiring it t
 
 # Developer Information
 
-## Tagging GlobalPlatform
+## Tag GlobalPlatform
 
 The formulae is referencing a tag version.
 
@@ -107,10 +107,42 @@ git tag -d 2.0.0-b1
 git push --delete origin 2.0.0-b1
 ~~~
 
-Update the version number in the Homebrew formulae. Check the formulae for correctness:
+## Update Code and Tag Homebrew Globalplatform
+
+This is necessary if some Ruby code in the formulae has to be updated and to check if in 
+the meanwhile the brew build system added some breaking changes requiring to update the formulae code. Unfortunately this is happening periodically.
 
 ~~~shell
+# Deletes the tap to have a clean state
+brew remove globalplatform
+brew untap kaoh/globalplatform
+brew tap kaoh/globalplatform
+~~~
+
+~~~shell
+# MacOS:
+# cd /usr/local/Homebrew/Library/Taps/kaoh/homebrew-globalplatform
+# Linux:
+#cd /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform/
+# make your necessary fixes
 brew audit --strict --online globalplatform
+~~~
+
+### Push Changes
+
+Since Homebrew has used a HTTPS URL for the checkout it will be required to use `git` instead:
+
+~~~shell
+git remote remove origin
+git remote add git@github.com:kaoh/homebrew-globalplatform
+git push origin master
+~~~
+
+### Tag
+
+~~~shell
+git tag 2.2.0
+git push origin 2.2.0
 ~~~
 
 ## Creating Bottles
@@ -215,7 +247,7 @@ __NOTE:__ Take here instead of of `user` the proper MacOS username.
 
 ### Upload Bottles
 
-In the release section this repository upload the `tar.gz` files. Replace the double '--' by just one `-`.
+In the release section of this repository upload the `tar.gz` files. Replace the double `--` by just one `-`.
 
 ## Formulae Documentation
 
