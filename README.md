@@ -123,7 +123,7 @@ Because Bintray has shut down its service, now GitHub is used directly.
 
 #### Linux
 
-A Docker instances can be used for running the bottling command.
+A Docker instance can be used for running the bottling command.
 
 ~~~shell
 docker rm brew
