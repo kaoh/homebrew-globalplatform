@@ -109,7 +109,7 @@ git push --delete origin 2.0.0-b1
 
 ## Update Code and Tag Homebrew Globalplatform
 
-This is necessary if some Ruby code in the formulae has to be updated and to check if in 
+This is necessary the update the used version, the Ruby code in the formulae and to check if in 
 the meanwhile the brew build system added some breaking changes requiring to update the formulae code. Unfortunately this is happening periodically.
 
 ~~~shell
@@ -125,6 +125,7 @@ brew tap kaoh/globalplatform
 # Linux:
 #cd /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform/
 # make your necessary fixes
+# update the tag to the required version in the url
 brew audit --strict --online globalplatform
 ~~~
 
