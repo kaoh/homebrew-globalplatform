@@ -4,8 +4,7 @@ class Globalplatform < Formula
   desc "C library + command-line for Open- / GlobalPlatform smart cards"
   homepage "https://kaoh.github.io/globalplatform/"
   url "https://github.com/kaoh/globalplatform.git", tag: "2.1.0"
-  #  version "2.1.0"
-  head "https://github.com/kaoh/globalplatform.git"
+  head "https://github.com/kaoh/globalplatform.git", branch: "master"
 
   bottle do
     root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.1.0"
