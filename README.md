@@ -136,15 +136,21 @@ Since Homebrew has used a HTTPS URL for the checkout it will be required to use 
 ~~~shell
 git remote remove origin
 git remote add git@github.com:kaoh/homebrew-globalplatform
-git push origin master
+git checkout -b working
+git commit -a -m ...
+git push origin working
 ~~~
+
+__NOTE:__ Instead of using the master branch creating a working branch and merging it later leaves the master untouched while proceeding.
 
 ### Tag
 
 ~~~shell
-git tag 2.2.0
-git push origin 2.2.0
+git tag 2.2.1
+git push origin 2.2.1
 ~~~
+
+Create now a new release in GitHub for the tag.
 
 ## Creating Bottles
 
@@ -166,6 +172,8 @@ mkdir build
 cd build
 ~~~
 
+__NOTE:__ The docker image can have issues running a `pcscd` test. Use standard Linux with Homebrew installed instead.
+
 #### MacOS
 
 Homebrew can be directly executed in MacOS.
@@ -180,15 +188,17 @@ The `test-bot` is used for creating the bottle inside the started environment.
 # Deletes the tap to have a clean state
 brew remove globalplatform
 brew untap kaoh/globalplatform
-brew test-bot --root-url=https://github.com/kaoh/homebrew-globalplatform/releases/download/2.1.0 --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
+brew test-bot --root-url=https://github.com/kaoh/homebrew-globalplatform/releases/download/2.2.1 --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
 ~~~
 
 Adjust the release tag at the end of the `root-url` option.
 
-__NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted with
+__NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted with:
 
 ~~~shell
-rm -r $(brew --cache)/globalplatform--git
+rm -rf $(brew --cache)/globalplatform--git
+brew remove globalplatform
+brew untap kaoh/globalplatform
 ~~~
 
 ## Updating Formulae with Bottle References
@@ -219,32 +229,32 @@ Formatting problems can be fixed with:
 brew style --fix Formula/globalplatform.rb
 ~~~
 
-### Tagging
-
-Tag the formulae in the this repository with the same version like used for globalplatform.
-
-~~~shell
-git tag 2.1.0
-git push origin 2.1.0
-~~~
-
 ### Uploading Bottles
 
 The created bottle files (`.bottle.tar.gz` and `.json`)  must be collected. The naming should be identical, i.e. use the same revision of 0 (if not explicitly intended).   `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. If a previous bottle of the same version exist the name will include a new revision. For beta releases it might be possible to remove the revision if necessary from the `tar.gz` and the `json`.  In the `json` file also remove the `revision` attribute if necessary.
 
-Create an empty directory for collecting the bottles to upload.
+### Re-Tag
+
+Remove the tag, push the updated formula and tag the master or working branch:
+
+~~~shell
+git tag -d 2.2.1
+git push --delete origin 2.2.1
+git comit -a -m ...
+git push origin working
+git tag 2.2.1
+git push origin 2.2.1
+~~~
+
+Create now a new release in GitHub for the tag. Merge the working branch into master and delete it.
 
 #### Linux
 
 Copy the build bottle to the current directory:
 
 ~~~shell
-    docker cp brew:/home/linuxbrew/build/. .
+docker cp brew:/home/linuxbrew/build/. .
 ~~~
-
-#### MacOS
-
-__NOTE:__ Take here instead of of `user` the proper MacOS username.
 
 ### Upload Bottles
 

@@ -40,12 +40,8 @@ class Globalplatform < Formula
       establish_context
       release_context
     EOS
-    system "pcscd" unless OS.mac?
-    system "#{bin}/gpshell", "test-script.txt" unless OS.mac?
-    if OS.mac?
-      oe, _status = Open3.capture2e("#{bin}/gpshell", "test-script.txt")
-      puts oe
-      assert_match(/0x8010001D/, oe)
-    end
+    oe, _status = Open3.capture2e("#{bin}/gpshell", "test-script.txt")
+    puts oe
+    assert_match(/0x8010001D/, oe)
   end
 end
