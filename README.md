@@ -140,15 +140,6 @@ git commit -a -m ...
 git push origin master
 ~~~
 
-### Tag
-
-~~~shell
-git tag 2.2.1
-git push origin 2.2.1
-~~~
-
-Create now a new release in GitHub for the tag.
-
 ## Creating Bottles
 
 The blog on https://jonathanchang.org/blog/maintain-your-own-homebrew-repository-with-binary-bottles/ describes how to create bottles for own taps.
@@ -228,13 +219,11 @@ brew style --fix Formula/globalplatform.rb
 
 The created bottle files (`.bottle.tar.gz` and `.json`)  must be collected. The naming should be identical, i.e. use the same revision of 0 (if not explicitly intended).   `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. If a previous bottle of the same version exist the name will include a new revision. For beta releases it might be possible to remove the revision if necessary from the `tar.gz` and the `json`.  In the `json` file also remove the `revision` attribute if necessary.
 
-### Re-Tag
+### Tag
 
-Remove the tag, push the updated formula and tag the master or working branch:
+Push the updated formula and tag the master or working branch:
 
 ~~~shell
-git tag -d 2.2.1
-git push --delete origin 2.2.1
 git commit -a -m ...
 git push origin master
 git tag 2.2.1
