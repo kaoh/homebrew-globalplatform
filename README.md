@@ -136,12 +136,9 @@ Since Homebrew has used a HTTPS URL for the checkout it will be required to use 
 ~~~shell
 git remote remove origin
 git remote add git@github.com:kaoh/homebrew-globalplatform
-git checkout -b working
 git commit -a -m ...
-git push origin working
+git push origin master
 ~~~
-
-__NOTE:__ Instead of using the master branch creating a working branch and merging it later leaves the master untouched while proceeding.
 
 ### Tag
 
@@ -171,8 +168,6 @@ docker run -it --name=brew homebrew/brew
 mkdir build
 cd build
 ~~~
-
-__NOTE:__ The docker image can have issues running a `pcscd` test. Use standard Linux with Homebrew installed instead.
 
 #### MacOS
 
@@ -240,13 +235,13 @@ Remove the tag, push the updated formula and tag the master or working branch:
 ~~~shell
 git tag -d 2.2.1
 git push --delete origin 2.2.1
-git comit -a -m ...
-git push origin working
+git commit -a -m ...
+git push origin master
 git tag 2.2.1
 git push origin 2.2.1
 ~~~
 
-Create now a new release in GitHub for the tag. Merge the working branch into master and delete it.
+Create now a new release in GitHub for the tag.
 
 #### Linux
 
