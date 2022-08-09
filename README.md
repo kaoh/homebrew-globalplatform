@@ -109,7 +109,9 @@ git push --delete origin 2.0.0-b1
 
 ## Update Code and Tag Homebrew Globalplatform
 
-This is necessary the update the used version, the Ruby code in the formulae and to check if in 
+At first it is necessary to update the used tagged Globalplatform version in the formula file.
+
+It is also occasionally necessary to update the Ruby code in the formulae and to check if in 
 the meanwhile the brew build system added some breaking changes requiring to update the formulae code. Unfortunately this is happening periodically.
 
 ~~~shell
@@ -131,7 +133,7 @@ brew audit --strict --online globalplatform
 
 ### Push Changes
 
-Since Homebrew has used a HTTPS URL for the checkout it will be required to use `git` instead:
+Since Homebrew has used a HTTPS URL for the checkout it will be required to use `git` instead to commit any changes:
 
 ~~~shell
 git remote remove origin
@@ -154,8 +156,8 @@ A Docker instance can be used for running the bottling command.
 
 ~~~shell
 docker rm brew
-docker pull homebrew/brew
-docker run -it --name=brew homebrew/brew
+docker pull homebrew/ubuntu16.04
+docker run -it --name=brew homebrew/ubuntu16.04
 mkdir build
 cd build
 ~~~
