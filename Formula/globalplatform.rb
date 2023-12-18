@@ -3,7 +3,7 @@ require "open3"
 class Globalplatform < Formula
   desc "C library + command-line for Open- / GlobalPlatform smart cards"
   homepage "https://kaoh.github.io/globalplatform/"
-  url "https://github.com/kaoh/globalplatform.git", tag: "2.3.1"
+  url "https://github.com/kaoh/globalplatform.git", tag: "2.4.0"
   head "https://github.com/kaoh/globalplatform.git", branch: "master"
 
   bottle do
