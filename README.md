@@ -91,20 +91,22 @@ __NOTE:__ This will remove the version, in case other package are requiring it t
 
 # Developer Information
 
-## Tag GlobalPlatform
+## Tag GlobalPlatform 
 
 The formulae is referencing a tag version.
 
+Go to the globalplatform sources and tag it:
+
 ~~~shell
-git tag 2.0.0-b1
-git push origin 2.0.0-b1
+git tag 2.4.0
+git push origin 2.4.0
 ~~~
 
 It might be necessary to delete and recreate this tag during the release of a new beta version in a beta formulae:
 
 ~~~shell
-git tag -d 2.0.0-b1
-git push --delete origin 2.0.0-b1
+git tag -d 2.4.0
+git push --delete origin 2.4.0
 ~~~
 
 ## Update Code and Tag Homebrew Globalplatform
@@ -123,9 +125,9 @@ brew tap kaoh/globalplatform
 
 ~~~shell
 # MacOS:
-# cd /usr/local/Homebrew/Library/Taps/kaoh/homebrew-globalplatform
+cd /usr/local/Homebrew/Library/Taps/kaoh/homebrew-globalplatform
 # Linux:
-#cd /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform/
+cd /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform/
 # make your necessary fixes
 # update the tag to the required version in the url
 brew audit --strict --online globalplatform
@@ -133,11 +135,11 @@ brew audit --strict --online globalplatform
 
 ### Push Changes
 
-Since Homebrew has used a HTTPS URL for the checkout it will be required to use `git` instead to commit any changes:
+Since Homebrew might have used a HTTPs URL or a different git user for the checkout it will be required to use the `git` protocol instead to commit any changes:
 
 ~~~shell
 git remote remove origin
-git remote add git@github.com:kaoh/homebrew-globalplatform
+git remote add origin git@github.com:kaoh/homebrew-globalplatform
 git commit -a -m ...
 git push origin master
 ~~~
@@ -156,8 +158,8 @@ A Docker instance can be used for running the bottling command.
 
 ~~~shell
 docker rm brew
-docker pull homebrew/ubuntu16.04
-docker run -it --name=brew homebrew/ubuntu16.04
+docker pull homebrew/ubuntu18.04
+docker run -it --name=brew homebrew/ubuntu18.04
 mkdir build
 cd build
 ~~~
@@ -176,7 +178,7 @@ The `test-bot` is used for creating the bottle inside the started environment.
 # Deletes the tap to have a clean state
 brew remove globalplatform
 brew untap kaoh/globalplatform
-brew test-bot --root-url=https://github.com/kaoh/homebrew-globalplatform/releases/download/2.2.1 --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
+brew test-bot --root-url=https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.0 --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
 ~~~
 
 Adjust the release tag at the end of the `root-url` option.
@@ -228,8 +230,8 @@ Push the updated formula and tag the master or working branch:
 ~~~shell
 git commit -a -m ...
 git push origin master
-git tag 2.2.1
-git push origin 2.2.1
+git tag 2.4.0
+git push origin 2.4.0
 ~~~
 
 Create now a new release in GitHub for the tag.
