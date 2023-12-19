@@ -197,13 +197,15 @@ The updated formulaes from Linux and MacOS must be merged together. The git repo
 Linux Docker container is `/home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform`.
 Under MacOS the location is `/usr/local/Homebrew/Library/Taps/kaoh/homebrew-globalplatform`.
 
+Extract the `sha256` attribute from the `globalplatform--2.4.0.x86_64_linux.bottle.json` file and insert it into the formula.
+
 Example:
 
 ~~~ruby
    bottle do
-     root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.1.0"
+     root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.0"
      sha256 cellar: :any, catalina: "23f4a097e12cacbf3a1ecc6de002bb8a6b1965ab9c93702ace2af78270f148d5"
-     sha256 cellar: :any_skip_relocation, x86_64_linux: "22a961043e2c4cb62d9b92a5856fbc74c05fd0e83b838a73ffa329462719de0a"
+     sha256 cellar: :any_skip_relocation, x86_64_linux: "1e3523c6a7bbc4fb9bb64dfe76227a290a6871a33be380f129b128e1a7b2a129"
    end
 ~~~
 
@@ -221,7 +223,8 @@ brew style --fix Formula/globalplatform.rb
 
 ### Uploading Bottles
 
-The created bottle files (`.bottle.tar.gz` and `.json`)  must be collected. The naming should be identical, i.e. use the same revision of 0 (if not explicitly intended).   `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. If a previous bottle of the same version exist the name will include a new revision. For beta releases it might be possible to remove the revision if necessary from the `tar.gz` and the `json`.  In the `json` file also remove the `revision` attribute if necessary.
+The created bottle file (`.bottle.tar.gz`)  must be collected. If not explicitly intended rename the ending `bottle.1.tar.gz` to just `bottle.tar.gz`.
+In general the naming ist `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. If a previous bottle of the same version exist the name will include a new revision.
 
 ### Tag
 
