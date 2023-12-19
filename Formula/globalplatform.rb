@@ -19,7 +19,7 @@ class Globalplatform < Formula
   depends_on "groff" => :build
   depends_on "pandoc" => :build
   depends_on "pkg-config" => :build
-  depends_on "openssl@1.1"
+  depends_on "openssl@3.0"
 
   depends_on "pcsc-lite" unless OS.mac?
   depends_on "zlib" unless OS.mac?
