@@ -22,7 +22,7 @@ jobs:
       - name: Save bootle
         uses: actions/upload-artifact@v4
         with:
-          name: bottle
+          name: bottle-mac
           path: |
             ./globalplatform*.bottle.tar.gz
             ./globalplatform*.bottle.json
