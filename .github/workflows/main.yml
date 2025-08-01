@@ -11,14 +11,14 @@ jobs:
       - name: Set up Git repository
         uses: actions/checkout@v2
       - name: Run brew test-bot
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_ENV_HINTS: 1
         run: |
-          set -e
-          brew update
-          HOMEBREW_TAP_DIR="/usr/local/Homebrew/Library/Taps/kaoh/homebrew-globalplatform"
-          mkdir -p "$HOMEBREW_TAP_DIR"
-          rm -rf "$HOMEBREW_TAP_DIR"
-          ln -s "$PWD" "$HOMEBREW_TAP_DIR"
-          brew test-bot kaoh/globalplatform/globalplatform
+          brew test-bot --skip-setup \
+            --tap=kaoh/globalplatform \
+            kaoh/globalplatform/globalplatform
+            ls -1
       - name: Save bootle
         uses: actions/upload-artifact@v4
         with:
