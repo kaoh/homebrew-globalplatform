@@ -33,9 +33,9 @@ class Globalplatform < Formula
     system "make", "test"
     system "make", "doc"
     system "make", "install", "MANDIR=#{man}"
-    on_macos do
+    if OS.mac?
       rpath = lib.to_s
-      MachO::Tools.add_rpath (bin/"gpshell").to_s,                     rpath
+      MachO::Tools.add_rpath (bin/"gpshell").to_s, rpath
       MachO::Tools.add_rpath (lib/"libgppcscconnectionplugin.1.dylib").to_s, rpath
     end
   end
