@@ -3,11 +3,11 @@ require "open3"
 class Globalplatform < Formula
   desc "C library + command-line for Open- / GlobalPlatform smart cards"
   homepage "https://kaoh.github.io/globalplatform/"
-  url "https://github.com/kaoh/globalplatform.git", tag: "2.4.0"
+  url "https://github.com/kaoh/globalplatform.git", tag: "2.4.2"
   head "https://github.com/kaoh/globalplatform.git", branch: "master"
 
   bottle do
-    root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.0"
+    root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.2"
     sha256 cellar: :any,                 monterey:     "541e26dcbd362a082a9a115557f0c15e468abad0196e3080026349f7d48a52db"
     sha256 cellar: :any_skip_relocation, x86_64_linux: "1e3523c6a7bbc4fb9bb64dfe76227a290a6871a33be380f129b128e1a7b2a129"
   end
