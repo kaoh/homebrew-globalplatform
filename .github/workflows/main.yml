@@ -24,5 +24,4 @@ jobs:
         with:
           name: bottle-mac
           path: |
-            ./globalplatform*.bottle.tar.gz
-            ./globalplatform*.bottle.json
+            ./globalplatform*.bottle.*
