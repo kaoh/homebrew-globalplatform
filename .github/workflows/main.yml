@@ -18,12 +18,9 @@ jobs:
       - name: Install Homebrew on Linux
         if: runner.os == 'Linux'
         run: |
-          # Install Homebrew non-interactively
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          # Add Homebrew to the PATH for the current step
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          # Add Homebrew's environment to GITHUB_ENV for all subsequent steps in this job
-          /home/linuxbrew/.linuxbrew/bin/brew shellenv >> $GITHUB_ENV
+          brew shellenv >> "$GITHUB_ENV"
 
       - name: Run brew test-bot
         env:
