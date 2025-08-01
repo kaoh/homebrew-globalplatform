@@ -105,8 +105,8 @@ git push origin 2.4.0
 It might be necessary to delete and recreate this tag during the release of a new beta version in a beta formulae:
 
 ~~~shell
-git tag -d 2.4.0
-git push --delete origin 2.4.0
+git tag -d 2.4.2
+git push --delete origin 2.4.2
 ~~~
 
 ## Update Code and Tag Homebrew Globalplatform
@@ -146,50 +146,7 @@ git push origin master
 
 ## Creating Bottles
 
-The blog on https://jonathanchang.org/blog/maintain-your-own-homebrew-repository-with-binary-bottles/ describes how to create bottles for own taps.
-
-Because Bintray has shut down its service, now GitHub is used directly.
-
-### Environment
-
-#### Linux
-
-A Docker instance can be used for running the bottling command.
-
-~~~shell
-docker rm brew
-docker pull homebrew/ubuntu18.04
-docker run -it --name=brew homebrew/ubuntu18.04
-mkdir build
-cd build
-~~~
-
-#### MacOS
-
-Homebrew can be directly executed in MacOS.
-
-__NOTE:__ For testing the installation later the Homebrew cellar and tap must be removed again to have a clean environment.
-
-### Bottling
-
-The `test-bot` is used for creating the bottle inside the started environment.
-
-~~~shell
-# Deletes the tap to have a clean state
-brew remove globalplatform
-brew untap kaoh/globalplatform
-brew test-bot --root-url=https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.0 --tap=kaoh/globalplatform kaoh/globalplatform/globalplatform
-~~~
-
-Adjust the release tag at the end of the `root-url` option.
-
-__NOTE__: If the GlobalPlatform tag had been deleted and recreated with the same name the cache of Homebrew must be cleared. A clean docker image can be started or the cache can be deleted with:
-
-~~~shell
-rm -rf $(brew --cache)/globalplatform--git
-brew remove globalplatform
-brew untap kaoh/globalplatform
-~~~
+There are GitHub runners for MacOS and Linux which are building the bottles. Download the created artifacts from "Save Bottle" task.
 
 ## Updating Formulae with Bottle References
 
@@ -197,15 +154,15 @@ The updated formulaes from Linux and MacOS must be merged together. The git repo
 Linux Docker container is `/home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform`.
 Under MacOS the location is `/usr/local/Homebrew/Library/Taps/kaoh/homebrew-globalplatform`.
 
-Extract the `sha256` attribute from the `globalplatform--2.4.0.x86_64_linux.bottle.json` file and insert it into the formula.
+Extract the `sha256` attribute from the `globalplatform--2.4.2.x86_64_linux.bottle.json` file and insert it into the formula.
 
 Example:
 
 ~~~ruby
    bottle do
-     root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.0"
-     sha256 cellar: :any, catalina: "23f4a097e12cacbf3a1ecc6de002bb8a6b1965ab9c93702ace2af78270f148d5"
-     sha256 cellar: :any_skip_relocation, x86_64_linux: "1e3523c6a7bbc4fb9bb64dfe76227a290a6871a33be380f129b128e1a7b2a129"
+     root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.2"
+     sha256 cellar: :any,                 sonoma:     "36256315c5f0b37d0b02d5ae7218e5c6e189be58ab96e81623ad692662453f3a"
+     sha256 cellar: :any_skip_relocation, x86_64_linux: "8b4a021bd242fe12b0b0322410355b559dc475bc273b72d56ea294559d86ab29"
    end
 ~~~
 
@@ -224,7 +181,7 @@ brew style --fix Formula/globalplatform.rb
 ### Uploading Bottles
 
 The created bottle file (`.bottle.tar.gz`)  must be collected. If not explicitly intended rename the ending `bottle.1.tar.gz` to just `bottle.tar.gz`.
-In general the naming ist `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. If a previous bottle of the same version exist the name will include a new revision.
+In general the naming is `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. If a previous bottle of the same version exist the name will include a new revision.
 
 ### Tag
 
@@ -233,19 +190,11 @@ Push the updated formula and tag the master or working branch:
 ~~~shell
 git commit -a -m ...
 git push origin master
-git tag 2.4.0
-git push origin 2.4.0
+git tag 2.4.2
+git push origin 2.4.2
 ~~~
 
 Create now a new release in GitHub for the tag.
-
-#### Linux
-
-Copy the build bottle to the current directory:
-
-~~~shell
-docker cp brew:/home/linuxbrew/build/. .
-~~~
 
 ### Upload Bottles
 
