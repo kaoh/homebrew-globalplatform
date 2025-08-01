@@ -6,10 +6,18 @@ on:
     branches: master
 jobs:
   test-bot:
-    runs-on: macos-latest
+    strategy: matrix: os: [macos-latest, ubuntu-22.04] 
+    runs-on: ${{ matrix.os }} 
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v4
+      - name: Install Homebrew on Linux
+        if: runner.os == 'Linux'
+        run: |
+          echo "Installing Homebrew..."
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> $GITHUB_ENV
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
       - name: Run brew test-bot
         env:
           HOMEBREW_NO_AUTO_UPDATE: 1
@@ -22,6 +30,6 @@ jobs:
       - name: Save bootle
         uses: actions/upload-artifact@v4
         with:
-          name: bottle-mac
+          name: bottle-${{ matrix.os }}
           path: |
             ./globalplatform*.bottle.*
