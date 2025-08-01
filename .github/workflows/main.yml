@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@v2
+        uses: Homebrew/actions/setup-homebrew@main
 
       - name: Run brew test-bot
         env:
