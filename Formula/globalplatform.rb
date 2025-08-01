@@ -33,6 +33,11 @@ class Globalplatform < Formula
     system "make", "test"
     system "make", "doc"
     system "make", "install", "MANDIR=#{man}"
+    if OS.mac?
+      rpath = lib # this expands to /opt/homebrew/Cellar/globalplatform/2.4.2/lib
+      MachO::Tools.add_rpath bin/"gpshell", rpath
+      MachO::Tools.add_rpath lib/"libgppcscconnectionplugin.1.dylib", rpath
+    end
   end
 
   test do
