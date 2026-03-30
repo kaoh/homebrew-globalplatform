@@ -22,7 +22,7 @@ env:
 
 jobs:
   build-bottles:
-    name: build bottles (${{ matrix.name }})
+    name: build/validate (${{ matrix.name }})
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
@@ -32,16 +32,22 @@ jobs:
         include:
           - name: Linux x86_64
             runner: ubuntu-22.04
+            produces_bottle: true
           - name: macOS 14 arm64
             runner: macos-14
+            produces_bottle: true
           - name: macOS 15 arm64
             runner: macos-15
+            produces_bottle: true
           - name: macOS 15 Intel
             runner: macos-15-intel
+            produces_bottle: false
           - name: macOS 26 arm64
             runner: macos-26
+            produces_bottle: true
           - name: macOS 26 Intel
             runner: macos-26-intel
+            produces_bottle: false
     steps:
       - name: Check out target branch
         uses: actions/checkout@v4
@@ -101,6 +107,7 @@ jobs:
           brew test-bot --only-tap-syntax --tap="$TAP"
 
       - name: Build bottles
+        if: ${{ matrix.produces_bottle }}
         shell: bash
         env:
           ROOT_URL: https://github.com/${{ github.repository }}/releases/download/${{ inputs.release_tag }}
@@ -108,8 +115,25 @@ jobs:
           set -euo pipefail
           brew test-bot --only-formulae --root-url="$ROOT_URL" --tap="$TAP" "$FORMULA"
 
+      - name: Validate source build on non-bottling runners
+        if: ${{ !matrix.produces_bottle }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew install --formula --build-from-source "$FORMULA"
+          brew test "$FORMULA"
+
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            keg_prefix="$(brew --prefix "$FORMULA")"
+            /usr/bin/codesign --verify --strict --verbose=2 "$keg_prefix/bin/gpshell"
+
+            while IFS= read -r -d '' dylib; do
+              /usr/bin/codesign --verify --strict --verbose=2 "$dylib"
+            done < <(find "$keg_prefix/lib" -type f \( -name "*.dylib" -o -name "*.so" -o -name "*.bundle" \) -print0)
+          fi
+
       - name: Collect bottle artifacts
-        if: always()
+        if: ${{ always() && matrix.produces_bottle }}
         shell: bash
         run: |
           set -euo pipefail
@@ -119,7 +143,7 @@ jobs:
             -exec cp -v {} artifact-output/ \; || true
 
       - name: Upload bottle artifacts
-        if: always()
+        if: ${{ always() && matrix.produces_bottle }}
         uses: actions/upload-artifact@v4
         with:
           name: bottles-${{ matrix.runner }}

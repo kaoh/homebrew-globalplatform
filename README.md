@@ -146,7 +146,7 @@ git push origin master
 
 ## Creating Bottles
 
-There are GitHub runners for MacOS and Linux which are building the bottles. Download the created artifacts from "Save Bottle" task.
+There are GitHub runners for macOS and Linux which are building the bottles. The Intel macOS runners are kept for source-build validation only. Homebrew `test-bot` currently skips Intel Sequoia/Tahoe bottle creation when dependencies are not bottled on those exact platforms.
 
 ## Updating Formulae with Bottle References
 

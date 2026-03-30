@@ -22,10 +22,11 @@ class Globalplatform < Formula
   depends_on "pkg-config" => :build
   depends_on "openssl@3"
 
-  depends_on "pcsc-lite" unless OS.mac?
-  depends_on "zlib" unless OS.mac?
-
-  uses_from_macos "zlib"
+  on_linux do
+    depends_on "pcsc-lite"
+    # Homebrew Linux linkage checking now attributes libz to zlib-ng-compat.
+    depends_on "zlib-ng-compat"
+  end
 
   def install
     system "cmake", ".", "-DTESTING=ON", *std_cmake_args
