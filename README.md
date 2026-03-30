@@ -194,11 +194,11 @@ git tag 2.4.2
 git push origin 2.4.2
 ~~~
 
-Create now a new release in GitHub for the tag.
+Create a new release in GitHub for the tag.
 
 ### Upload Bottles
 
-In the release section of this repository upload the `tar.gz` files. Replace the double `--` by just one `-`.
+In the release section of this repository upload the `tar.gz` files using the single `-` filename from the bottle JSON `filename` field, not the local `--` filename. Homebrew generates local bottle files like `globalplatform--2.2.1.x86_64_linux.bottle.tar.gz`, but for GitHub Releases the uploaded asset name must match the JSON `filename`, e.g. `globalplatform-2.2.1.x86_64_linux.bottle.tar.gz`.
 
 ## Formulae Documentation
 

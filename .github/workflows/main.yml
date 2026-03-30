@@ -1,36 +1,285 @@
-name: brew test-bot
+name: release bottles
+
 on:
-  push:
-    branches: master
-  pull_request:
-    branches: master
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Tap release tag to create and use in the bottle root_url.
+        required: true
+        type: string
+      prerelease:
+        description: Create the GitHub release as a prerelease.
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+env:
+  TAP: kaoh/globalplatform
+  FORMULA: kaoh/globalplatform/globalplatform
+
 jobs:
-  test-bot:
+  build-bottles:
+    name: build bottles (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-22.04]
-
-    runs-on: ${{ matrix.os }}
-
+        include:
+          - name: Linux x86_64
+            runner: ubuntu-22.04
+          - name: macOS 14 arm64
+            runner: macos-14
+          - name: macOS 15 arm64
+            runner: macos-15
+          - name: macOS 15 Intel
+            runner: macos-15-intel
+          - name: macOS 26 arm64
+            runner: macos-26
+          - name: macOS 26 Intel
+            runner: macos-26-intel
     steps:
-      - name: Set up Git repository
+      - name: Check out target branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
 
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run brew test-bot
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: 1
-          HOMEBREW_NO_ENV_HINTS: 1
+      - name: Link tap into Homebrew
+        shell: bash
         run: |
-          brew test-bot --skip-setup \
-            --tap=kaoh/globalplatform \
-            kaoh/globalplatform/globalplatform
-            ls -1
-      - name: Save bootle
+          set -euo pipefail
+          HOMEBREW_REPOSITORY="$(brew --repository)"
+          HOMEBREW_TAP_DIR="${HOMEBREW_REPOSITORY}/Library/Taps/kaoh/homebrew-globalplatform"
+          mkdir -p "$(dirname "$HOMEBREW_TAP_DIR")"
+          rm -rf "$HOMEBREW_TAP_DIR"
+          ln -s "$GITHUB_WORKSPACE" "$HOMEBREW_TAP_DIR"
+
+      - name: Prepare bottle root_url for requested release
+        shell: bash
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if [[ "$REF_TYPE" != "branch" ]]; then
+            echo "This workflow must be dispatched on a branch, not on a ${REF_TYPE} ref (${REF_NAME})"
+            exit 1
+          fi
+          ruby <<'RUBY'
+          path = "Formula/globalplatform.rb"
+          release_tag = ENV.fetch("RELEASE_TAG")
+          text = File.read(path)
+
+          bottle_root_updated = text.sub!(
+            /(root_url\s+"https:\/\/github\.com\/kaoh\/homebrew-globalplatform\/releases\/download\/)([^"]+)(")/,
+            "\\1#{release_tag}\\3"
+          )
+          abort("Failed to update bottle root_url in #{path}") unless bottle_root_updated
+
+          File.write(path, text)
+          RUBY
+
+          ruby -c Formula/globalplatform.rb
+
+      - name: Run brew test-bot preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew test-bot --only-cleanup-before
+          brew test-bot --only-setup
+          brew test-bot --only-tap-syntax --tap="$TAP"
+
+      - name: Build bottles
+        shell: bash
+        env:
+          ROOT_URL: https://github.com/${{ github.repository }}/releases/download/${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          brew test-bot --only-formulae --root-url="$ROOT_URL" --tap="$TAP" "$FORMULA"
+
+      - name: Collect bottle artifacts
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifact-output
+          find "$GITHUB_WORKSPACE" -type f \
+            \( -name "*.bottle*.tar.gz" -o -name "*.bottle*.json" \) \
+            -exec cp -v {} artifact-output/ \; || true
+
+      - name: Upload bottle artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bottle-${{ matrix.os }}
-          path: |
-            ./globalplatform*.bottle.*
+          name: bottles-${{ matrix.runner }}
+          path: artifact-output
+          if-no-files-found: error
+
+  publish-release:
+    name: merge bottle block and publish release
+    runs-on: ubuntu-22.04
+    needs: build-bottles
+    permissions:
+      contents: write
+    steps:
+      - name: Check out target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Git user
+        uses: Homebrew/actions/git-user-config@main
+
+      - name: Link tap into Homebrew
+        shell: bash
+        run: |
+          set -euo pipefail
+          HOMEBREW_REPOSITORY="$(brew --repository)"
+          HOMEBREW_TAP_DIR="${HOMEBREW_REPOSITORY}/Library/Taps/kaoh/homebrew-globalplatform"
+          mkdir -p "$(dirname "$HOMEBREW_TAP_DIR")"
+          rm -rf "$HOMEBREW_TAP_DIR"
+          ln -s "$GITHUB_WORKSPACE" "$HOMEBREW_TAP_DIR"
+
+      - name: Prepare bottle root_url for requested release
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          ruby <<'RUBY'
+          path = "Formula/globalplatform.rb"
+          release_tag = ENV.fetch("RELEASE_TAG")
+          text = File.read(path)
+
+          bottle_root_updated = text.sub!(
+            /(root_url\s+"https:\/\/github\.com\/kaoh\/homebrew-globalplatform\/releases\/download\/)([^"]+)(")/,
+            "\\1#{release_tag}\\3"
+          )
+          abort("Failed to update bottle root_url in #{path}") unless bottle_root_updated
+
+          File.write(path, text)
+          RUBY
+
+          ruby -c Formula/globalplatform.rb
+
+      - name: Download bottle artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bottles-*
+          merge-multiple: true
+          path: bottle-artifacts
+
+      - name: Prepare release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import shutil
+          import sys
+
+          artifacts = pathlib.Path("bottle-artifacts")
+          release_assets = pathlib.Path("release-assets")
+          json_files = sorted(artifacts.glob("*.json"))
+          if not json_files:
+              print("No bottle JSON files downloaded", file=sys.stderr)
+              sys.exit(1)
+
+          for json_path in json_files:
+              with json_path.open() as fh:
+                  data = json.load(fh)
+              for entry in data.values():
+                  tags = entry["bottle"]["tags"]
+                  for tag in tags.values():
+                      local_name = tag["local_filename"]
+                      remote_name = tag["filename"]
+                      src = artifacts / local_name
+                      dst = release_assets / remote_name
+                      if not src.exists():
+                          print(f"Missing bottle archive referenced by {json_path.name}: {src.name}", file=sys.stderr)
+                          sys.exit(1)
+                      shutil.copy2(src, dst)
+          PY
+
+      - name: Merge bottle JSON into formula
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          json_files=(bottle-artifacts/*.json)
+          if (( ${#json_files[@]} == 0 )); then
+            echo "No bottle JSON files downloaded"
+            exit 1
+          fi
+          brew bottle --merge --write --no-commit "${json_files[@]}"
+          brew style Formula/globalplatform.rb
+
+      - name: Commit and push bottle block
+        shell: bash
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- Formula/globalplatform.rb; then
+            echo "No bottle changes were produced"
+            exit 1
+          fi
+          git add Formula/globalplatform.rb
+          git commit -m "Update bottle hashes for ${RELEASE_TAG}"
+          git push origin "HEAD:${TARGET_BRANCH}"
+
+      - name: Create tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "Tag ${RELEASE_TAG} already exists on origin"
+            exit 1
+          fi
+          git tag "${RELEASE_TAG}"
+          git push origin "refs/tags/${RELEASE_TAG}"
+
+      - name: Create GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists"
+            exit 1
+          fi
+
+          release_args=()
+          if [[ "$PRERELEASE" == "true" ]]; then
+            release_args+=(--prerelease)
+          fi
+
+          gh release create "$RELEASE_TAG" release-assets/* \
+            --title "$RELEASE_TAG" \
+            --notes "Bottle release for $RELEASE_TAG" \
+            "${release_args[@]}"

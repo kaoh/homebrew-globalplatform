@@ -20,7 +20,7 @@ class Globalplatform < Formula
   depends_on "groff" => :build
   depends_on "pandoc" => :build
   depends_on "pkg-config" => :build
-  depends_on "openssl@3.0"
+  depends_on "openssl@3"
 
   depends_on "pcsc-lite" unless OS.mac?
   depends_on "zlib" unless OS.mac?
@@ -38,6 +38,7 @@ class Globalplatform < Formula
       MachO::Tools.add_rpath (bin/"gpshell").to_s, rpath
       MachO::Tools.add_rpath (lib/"libgppcscconnectionplugin.1.dylib").to_s, rpath
     end
+    resign_macos_binaries if OS.mac?
   end
 
   test do
@@ -49,5 +50,18 @@ class Globalplatform < Formula
     oe, _status = Open3.capture2e("#{bin}/gpshell", "test-script.txt")
     puts oe
     assert_match(/0x8010001D/, oe)
+  end
+
+  private
+
+  def resign_macos_binaries
+    targets = Dir[lib/"**/*.{dylib,so,bundle}", bin/"*"]
+              .select { |path| File.file?(path) }
+              .map { |path| Pathname(path).realpath.to_s }
+              .uniq
+
+    targets.each do |path|
+      system "/usr/bin/codesign", "--force", "--sign", "-", path
+    end
   end
 end
