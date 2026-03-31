@@ -3,8 +3,8 @@ name: release bottles
 on:
   workflow_dispatch:
     inputs:
-      release_tag:
-        description: Tap release tag to create and use in the bottle root_url.
+      package_version:
+        description: Homebrew package version to release, e.g. 2.4.2 or 2.4.2_1.
         required: true
         type: string
       prerelease:
@@ -75,7 +75,7 @@ jobs:
         env:
           REF_TYPE: ${{ github.ref_type }}
           REF_NAME: ${{ github.ref_name }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
           set -euo pipefail
           if [[ "$REF_TYPE" != "branch" ]]; then
@@ -84,14 +84,34 @@ jobs:
           fi
           ruby <<'RUBY'
           path = "Formula/globalplatform.rb"
-          release_tag = ENV.fetch("RELEASE_TAG")
+          package_version = ENV.fetch("PACKAGE_VERSION")
+          package_match = package_version.match(/\A(?<base>[0-9A-Za-z.+-]+?)(?:_(?<revision>[1-9]\d*))?\z/)
+          abort("Invalid package version #{package_version.inspect}") unless package_match
+
+          base_version = package_match[:base]
+          revision = package_match[:revision]
           text = File.read(path)
+
+          source_tag = text[/url\s+"[^"]+",\s*tag:\s*"([^"]+)"/, 1]
+          abort("Failed to determine source tag from #{path}") unless source_tag
+          abort("Formula source tag #{source_tag.inspect} does not match requested base version #{base_version.inspect}") unless source_tag == base_version
 
           bottle_root_updated = text.sub!(
             /(root_url\s+"https:\/\/github\.com\/kaoh\/homebrew-globalplatform\/releases\/download\/)([^"]+)(")/,
-            "\\1#{release_tag}\\3"
+            "\\1#{package_version}\\3"
           )
           abort("Failed to update bottle root_url in #{path}") unless bottle_root_updated
+
+          revision_line = "  revision #{revision}"
+          if revision
+            if text.match?(/^\s*revision\s+\d+\s*$/)
+              text.sub!(/^\s*revision\s+\d+\s*$/, revision_line)
+            elsif text.sub!(/^(\s*head[^\n]*\n)/, "\\1#{revision_line}\n").nil?
+              abort("Failed to insert revision into #{path}")
+            end
+          else
+            text.sub!(/^\s*revision\s+\d+\s*\n/, "")
+          end
 
           File.write(path, text)
           RUBY
@@ -110,7 +130,7 @@ jobs:
         if: ${{ matrix.produces_bottle }}
         shell: bash
         env:
-          ROOT_URL: https://github.com/${{ github.repository }}/releases/download/${{ inputs.release_tag }}
+          ROOT_URL: https://github.com/${{ github.repository }}/releases/download/${{ inputs.package_version }}
         run: |
           set -euo pipefail
           brew test-bot --only-formulae --root-url="$ROOT_URL" --tap="$TAP" "$FORMULA"
@@ -184,19 +204,39 @@ jobs:
       - name: Prepare bottle root_url for requested release
         shell: bash
         env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
           set -euo pipefail
           ruby <<'RUBY'
           path = "Formula/globalplatform.rb"
-          release_tag = ENV.fetch("RELEASE_TAG")
+          package_version = ENV.fetch("PACKAGE_VERSION")
+          package_match = package_version.match(/\A(?<base>[0-9A-Za-z.+-]+?)(?:_(?<revision>[1-9]\d*))?\z/)
+          abort("Invalid package version #{package_version.inspect}") unless package_match
+
+          base_version = package_match[:base]
+          revision = package_match[:revision]
           text = File.read(path)
+
+          source_tag = text[/url\s+"[^"]+",\s*tag:\s*"([^"]+)"/, 1]
+          abort("Failed to determine source tag from #{path}") unless source_tag
+          abort("Formula source tag #{source_tag.inspect} does not match requested base version #{base_version.inspect}") unless source_tag == base_version
 
           bottle_root_updated = text.sub!(
             /(root_url\s+"https:\/\/github\.com\/kaoh\/homebrew-globalplatform\/releases\/download\/)([^"]+)(")/,
-            "\\1#{release_tag}\\3"
+            "\\1#{package_version}\\3"
           )
           abort("Failed to update bottle root_url in #{path}") unless bottle_root_updated
+
+          revision_line = "  revision #{revision}"
+          if revision
+            if text.match?(/^\s*revision\s+\d+\s*$/)
+              text.sub!(/^\s*revision\s+\d+\s*$/, revision_line)
+            elsif text.sub!(/^(\s*head[^\n]*\n)/, "\\1#{revision_line}\n").nil?
+              abort("Failed to insert revision into #{path}")
+            end
+          else
+            text.sub!(/^\s*revision\s+\d+\s*\n/, "")
+          end
 
           File.write(path, text)
           RUBY
@@ -261,7 +301,7 @@ jobs:
         shell: bash
         env:
           TARGET_BRANCH: ${{ github.ref_name }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
           set -euo pipefail
           if git diff --quiet -- Formula/globalplatform.rb; then
@@ -269,32 +309,32 @@ jobs:
             exit 1
           fi
           git add Formula/globalplatform.rb
-          git commit -m "Update bottle hashes for ${RELEASE_TAG}"
+          git commit -m "Update bottle hashes for ${PACKAGE_VERSION}"
           git push origin "HEAD:${TARGET_BRANCH}"
 
       - name: Create tag
         shell: bash
         env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
           set -euo pipefail
-          if git ls-remote --exit-code --tags origin "refs/tags/${RELEASE_TAG}" >/dev/null 2>&1; then
-            echo "Tag ${RELEASE_TAG} already exists on origin"
+          if git ls-remote --exit-code --tags origin "refs/tags/${PACKAGE_VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${PACKAGE_VERSION} already exists on origin"
             exit 1
           fi
-          git tag "${RELEASE_TAG}"
-          git push origin "refs/tags/${RELEASE_TAG}"
+          git tag "${PACKAGE_VERSION}"
+          git push origin "refs/tags/${PACKAGE_VERSION}"
 
       - name: Create GitHub release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
+          PACKAGE_VERSION: ${{ inputs.package_version }}
           PRERELEASE: ${{ inputs.prerelease }}
         run: |
           set -euo pipefail
-          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "Release $RELEASE_TAG already exists"
+          if gh release view "$PACKAGE_VERSION" >/dev/null 2>&1; then
+            echo "Release $PACKAGE_VERSION already exists"
             exit 1
           fi
 
@@ -303,7 +343,7 @@ jobs:
             release_args+=(--prerelease)
           fi
 
-          gh release create "$RELEASE_TAG" release-assets/* \
-            --title "$RELEASE_TAG" \
-            --notes "Bottle release for $RELEASE_TAG" \
+          gh release create "$PACKAGE_VERSION" release-assets/* \
+            --title "$PACKAGE_VERSION" \
+            --notes "Bottle release for $PACKAGE_VERSION" \
             "${release_args[@]}"

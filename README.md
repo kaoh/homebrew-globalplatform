@@ -17,16 +17,6 @@ Or `brew tap kaoh/globalplatform` and then `brew install globalplatform`.
 
 For Linux also look at the instructions at [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux)
 
-## MacOS M1
-
-homebrew on MacOS has problems when installing the project due to problems of the unsatisfied [GHC dependency](https://doesitarm.com/formula/ghc/).
-This seems to be a requirement of the homebrew build system and as long as no upstream support is available use this workaround:
-
-~~~shell
-arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-arch -x86_64 /usr/local/bin/brew install kaoh/globalplatform/globalplatform
-~~~
-
 ## Linux `pcsc-lite`
 
 ### Install `pcsc-lite`
@@ -63,7 +53,7 @@ Arch Linux:
         systemctl start pcsclite
 ~~~
 
-Consult your distribution for any other steps, e.g. to enable `pcsc-lite` as a service if this was forgotten by the package maintainer and is not included here already.
+Consult your distribution for any other steps, e.g., to enable `pcsc-lite` as a service if this was forgotten by the package maintainer and is not included here already.
 
 ### Remove Homebrew's Version of `pcsc-lite`
 
@@ -91,114 +81,39 @@ __NOTE:__ This will remove the version, in case other package are requiring it t
 
 # Developer Information
 
-## Tag GlobalPlatform 
+## Prepare a Release
 
-The formulae is referencing a tag version.
-
-Go to the globalplatform sources and tag it:
-
-~~~shell
-git tag 2.4.0
-git push origin 2.4.0
-~~~
-
-It might be necessary to delete and recreate this tag during the release of a new beta version in a beta formulae:
-
-~~~shell
-git tag -d 2.4.2
-git push --delete origin 2.4.2
-~~~
-
-## Update Code and Tag Homebrew Globalplatform
-
-At first it is necessary to update the used tagged Globalplatform version in the formula file.
-
-It is also occasionally necessary to update the Ruby code in the formulae and to check if in 
-the meanwhile the brew build system added some breaking changes requiring to update the formulae code. Unfortunately this is happening periodically.
-
-~~~shell
-# Deletes the tap to have a clean state
-brew remove globalplatform
-brew untap kaoh/globalplatform
-brew tap kaoh/globalplatform
-~~~
-
-~~~shell
-# MacOS:
-cd /usr/local/Homebrew/Library/Taps/kaoh/homebrew-globalplatform
-# Linux:
-cd /home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform/
-# make your necessary fixes
-# update the tag to the required version in the url
-brew audit --strict --online globalplatform
-~~~
-
-### Push Changes
-
-Since Homebrew might have used a HTTPs URL or a different git user for the checkout it will be required to use the `git` protocol instead to commit any changes:
-
-~~~shell
-git remote remove origin
-git remote add origin git@github.com:kaoh/homebrew-globalplatform
-git commit -a -m ...
-git push origin master
-~~~
-
-## Creating Bottles
-
-There are GitHub runners for macOS and Linux which are building the bottles. The Intel macOS runners are kept for source-build validation only. Homebrew `test-bot` currently skips Intel Sequoia/Tahoe bottle creation when dependencies are not bottled on those exact platforms.
-
-## Updating Formulae with Bottle References
-
-The updated formulaes from Linux and MacOS must be merged together. The git repository in the
-Linux Docker container is `/home/linuxbrew/.linuxbrew/Homebrew/Library/Taps/kaoh/homebrew-globalplatform`.
-Under MacOS the location is `/usr/local/Homebrew/Library/Taps/kaoh/homebrew-globalplatform`.
-
-Extract the `sha256` attribute from the `globalplatform--2.4.2.x86_64_linux.bottle.json` file and insert it into the formula.
+The upstream source tag is still set manually in the formula. Update the `url ... tag:` value in `Formula/globalplatform.rb` to the already existing tag from the `kaoh/globalplatform` repository and commit that change.
 
 Example:
 
 ~~~ruby
-   bottle do
-     root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.2"
-     sha256 cellar: :any,                 sonoma:     "36256315c5f0b37d0b02d5ae7218e5c6e189be58ab96e81623ad692662453f3a"
-     sha256 cellar: :any_skip_relocation, x86_64_linux: "8b4a021bd242fe12b0b0322410355b559dc475bc273b72d56ea294559d86ab29"
-   end
+url "https://github.com/kaoh/globalplatform.git", tag: "2.4.2"
 ~~~
 
-Check the correctness of the edit:
+If the Homebrew package should supersede an earlier package without changing the upstream source tag, use a Homebrew package revision when starting the workflow, e.g. `2.4.2_1`.
 
-~~~shell
-brew style Formula/globalplatform.rb
-~~~
+## Build Bottles and Release
 
-Formatting problems can be fixed with:
+The release workflow is run manually in GitHub Actions from a branch of this repository. It builds bottles on Linux and Apple Silicon macOS, validates source builds on Intel macOS, merges the bottle hashes into the formula, commits the updated formula, creates the tag and creates a GitHub release.
 
-~~~shell
-brew style --fix Formula/globalplatform.rb
-~~~
+Open the `release bottles` workflow in GitHub Actions and start it with:
 
-### Uploading Bottles
+- `package_version`: `2.4.2` for a normal release or `2.4.2_1` for `revision 1`
+- `prerelease`: keep the default `true` for the first run
 
-The created bottle file (`.bottle.tar.gz`)  must be collected. If not explicitly intended rename the ending `bottle.1.tar.gz` to just `bottle.tar.gz`.
-In general the naming is `bottle.<revision>.tar.gz`. For revision 0 `<revision>.` is empty. If a previous bottle of the same version exist the name will include a new revision.
+The workflow validates that the base part of `package_version` matches the manually set upstream tag in `Formula/globalplatform.rb`. For example, `package_version: 2.4.2_1` requires `tag: "2.4.2"` in the formula.
 
-### Tag
+## Finalize the Release
 
-Push the updated formula and tag the master or working branch:
+After the workflow has completed successfully:
 
-~~~shell
-git commit -a -m ...
-git push origin master
-git tag 2.4.2
-git push origin 2.4.2
-~~~
+1. Review the created GitHub release and the generated bottle assets.
+2. If everything is correct, edit the GitHub release and remove the pre-release flag.
 
-Create a new release in GitHub for the tag.
+## Notes
 
-### Upload Bottles
-
-In the release section of this repository upload the `tar.gz` files using the single `-` filename from the bottle JSON `filename` field, not the local `--` filename. Homebrew generates local bottle files like `globalplatform--2.2.1.x86_64_linux.bottle.tar.gz`, but for GitHub Releases the uploaded asset name must match the JSON `filename`, e.g. `globalplatform-2.2.1.x86_64_linux.bottle.tar.gz`.
+There are GitHub runners for macOS and Linux that are building the bottles. The Intel macOS runners are kept for source-build validation only. Homebrew `test-bot` currently skips Intel Sequoia/Tahoe bottle creation when dependencies are not bottled on those exact platforms.
 
 ## Formulae Documentation
 
