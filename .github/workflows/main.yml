@@ -109,15 +109,11 @@ jobs:
           )
           abort("Failed to update bottle root_url in #{path}") unless bottle_root_updated
 
-          revision_line = "  revision #{revision}"
+          text.gsub!(/^\s*revision\s+\d+\s*\n/, "")
           if revision
-            if text.match?(/^\s*revision\s+\d+\s*$/)
-              text.sub!(/^\s*revision\s+\d+\s*$/, revision_line)
-            elsif text.sub!(/^(\s*head[^\n]*\n)/, "\\1#{revision_line}\n").nil?
+            revision_line = "  revision #{revision}"
+            text.sub!(/^(\s*url[^\n]*\n)/, "\\1#{revision_line}\n") or
               abort("Failed to insert revision into #{path}")
-            end
-          else
-            text.sub!(/^\s*revision\s+\d+\s*\n/, "")
           end
 
           File.write(path, text)
@@ -240,15 +236,11 @@ jobs:
           )
           abort("Failed to update bottle root_url in #{path}") unless bottle_root_updated
 
-          revision_line = "  revision #{revision}"
+          text.gsub!(/^\s*revision\s+\d+\s*\n/, "")
           if revision
-            if text.match?(/^\s*revision\s+\d+\s*$/)
-              text.sub!(/^\s*revision\s+\d+\s*$/, revision_line)
-            elsif text.sub!(/^(\s*head[^\n]*\n)/, "\\1#{revision_line}\n").nil?
+            revision_line = "  revision #{revision}"
+            text.sub!(/^(\s*url[^\n]*\n)/, "\\1#{revision_line}\n") or
               abort("Failed to insert revision into #{path}")
-            end
-          else
-            text.sub!(/^\s*revision\s+\d+\s*\n/, "")
           end
 
           File.write(path, text)
