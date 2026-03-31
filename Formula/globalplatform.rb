@@ -7,12 +7,12 @@ class Globalplatform < Formula
   head "https://github.com/kaoh/globalplatform.git", branch: "master"
 
   bottle do
-    root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.2-b0"
-    rebuild 1
-    sha256 cellar: :any,                 arm64_tahoe:   "1604951bc8265c8b1fc91fd6aae2218ae58b9b45afb03daf02f0526616d62ada"
-    sha256 cellar: :any,                 arm64_sequoia: "0ea8d73a2d7fc0a40db85ae9e707c577fa67fe0c425640daec4dd9ccb31ee706"
-    sha256 cellar: :any,                 arm64_sonoma:  "a76cef9020902ef94297eee89e1baaf81cf514ac62e0b9403ada29bc09cefb28"
-    sha256 cellar: :any_skip_relocation, x86_64_linux:  "7200650cc63cf00180851b1156dae168304f6b14e8b56107de3b1652ae194d5e"
+    root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.2_1-b1"
+    rebuild 2
+    sha256 cellar: :any,                 arm64_tahoe:   "c88d6b42a824d3a662c3b34aab9fd3b5c5625563a0f8c922023a25290d5b72ce"
+    sha256 cellar: :any,                 arm64_sequoia: "bdc6aba013f47726956f950c82267831ca25af28a5645f422e8c89753d6bb340"
+    sha256 cellar: :any,                 arm64_sonoma:  "428f8bd4c8f84745ac5bafe694eb6ef098f76fcc9fd1b7e538f5269a3316f76e"
+    sha256 cellar: :any_skip_relocation, x86_64_linux:  "04529df316aae0bfde068f9a4fea1303cc053601df745acf1284abeb94e2b94f"
   end
 
   depends_on "cmake" => :build
