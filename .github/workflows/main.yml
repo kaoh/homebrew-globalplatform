@@ -7,6 +7,10 @@ on:
         description: Homebrew package version to release, e.g. 2.4.2 or 2.4.2_1.
         required: true
         type: string
+      release_tag:
+        description: Optional GitHub tag/release name and bottle root_url tag, e.g. 2.4.2-b1. Defaults to package_version.
+        required: false
+        type: string
       prerelease:
         description: Create the GitHub release as a prerelease.
         required: false
@@ -76,6 +80,7 @@ jobs:
           REF_TYPE: ${{ github.ref_type }}
           REF_NAME: ${{ github.ref_name }}
           PACKAGE_VERSION: ${{ inputs.package_version }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
           if [[ "$REF_TYPE" != "branch" ]]; then
@@ -85,6 +90,8 @@ jobs:
           ruby <<'RUBY'
           path = "Formula/globalplatform.rb"
           package_version = ENV.fetch("PACKAGE_VERSION")
+          release_tag = ENV.fetch("RELEASE_TAG", "").strip
+          release_tag = package_version if release_tag.empty?
           package_match = package_version.match(/\A(?<base>[0-9A-Za-z.+-]+?)(?:_(?<revision>[1-9]\d*))?\z/)
           abort("Invalid package version #{package_version.inspect}") unless package_match
 
@@ -98,7 +105,7 @@ jobs:
 
           bottle_root_updated = text.sub!(
             /(root_url\s+"https:\/\/github\.com\/kaoh\/homebrew-globalplatform\/releases\/download\/)([^"]+)(")/,
-            "\\1#{package_version}\\3"
+            "\\1#{release_tag}\\3"
           )
           abort("Failed to update bottle root_url in #{path}") unless bottle_root_updated
 
@@ -130,10 +137,13 @@ jobs:
         if: ${{ matrix.produces_bottle }}
         shell: bash
         env:
-          ROOT_URL: https://github.com/${{ github.repository }}/releases/download/${{ inputs.package_version }}
+          PACKAGE_VERSION: ${{ inputs.package_version }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
-          brew test-bot --only-formulae --root-url="$ROOT_URL" --tap="$TAP" "$FORMULA"
+          effective_release_tag="${RELEASE_TAG:-$PACKAGE_VERSION}"
+          root_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${effective_release_tag}"
+          brew test-bot --only-formulae --root-url="$root_url" --tap="$TAP" "$FORMULA"
 
       - name: Validate source build on non-bottling runners
         if: ${{ !matrix.produces_bottle }}
@@ -205,11 +215,14 @@ jobs:
         shell: bash
         env:
           PACKAGE_VERSION: ${{ inputs.package_version }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
           ruby <<'RUBY'
           path = "Formula/globalplatform.rb"
           package_version = ENV.fetch("PACKAGE_VERSION")
+          release_tag = ENV.fetch("RELEASE_TAG", "").strip
+          release_tag = package_version if release_tag.empty?
           package_match = package_version.match(/\A(?<base>[0-9A-Za-z.+-]+?)(?:_(?<revision>[1-9]\d*))?\z/)
           abort("Invalid package version #{package_version.inspect}") unless package_match
 
@@ -223,7 +236,7 @@ jobs:
 
           bottle_root_updated = text.sub!(
             /(root_url\s+"https:\/\/github\.com\/kaoh\/homebrew-globalplatform\/releases\/download\/)([^"]+)(")/,
-            "\\1#{package_version}\\3"
+            "\\1#{release_tag}\\3"
           )
           abort("Failed to update bottle root_url in #{path}") unless bottle_root_updated
 
@@ -316,25 +329,29 @@ jobs:
         shell: bash
         env:
           PACKAGE_VERSION: ${{ inputs.package_version }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
-          if git ls-remote --exit-code --tags origin "refs/tags/${PACKAGE_VERSION}" >/dev/null 2>&1; then
-            echo "Tag ${PACKAGE_VERSION} already exists on origin"
+          effective_release_tag="${RELEASE_TAG:-$PACKAGE_VERSION}"
+          if git ls-remote --exit-code --tags origin "refs/tags/${effective_release_tag}" >/dev/null 2>&1; then
+            echo "Tag ${effective_release_tag} already exists on origin"
             exit 1
           fi
-          git tag "${PACKAGE_VERSION}"
-          git push origin "refs/tags/${PACKAGE_VERSION}"
+          git tag "${effective_release_tag}"
+          git push origin "refs/tags/${effective_release_tag}"
 
       - name: Create GitHub release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGE_VERSION: ${{ inputs.package_version }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
           PRERELEASE: ${{ inputs.prerelease }}
         run: |
           set -euo pipefail
-          if gh release view "$PACKAGE_VERSION" >/dev/null 2>&1; then
-            echo "Release $PACKAGE_VERSION already exists"
+          effective_release_tag="${RELEASE_TAG:-$PACKAGE_VERSION}"
+          if gh release view "$effective_release_tag" >/dev/null 2>&1; then
+            echo "Release $effective_release_tag already exists"
             exit 1
           fi
 
@@ -343,7 +360,7 @@ jobs:
             release_args+=(--prerelease)
           fi
 
-          gh release create "$PACKAGE_VERSION" release-assets/* \
-            --title "$PACKAGE_VERSION" \
+          gh release create "$effective_release_tag" release-assets/* \
+            --title "$effective_release_tag" \
             --notes "Bottle release for $PACKAGE_VERSION" \
             "${release_args[@]}"

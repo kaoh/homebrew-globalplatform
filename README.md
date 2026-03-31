@@ -100,9 +100,20 @@ The release workflow is run manually in GitHub Actions from a branch of this rep
 Open the `release bottles` workflow in GitHub Actions and start it with:
 
 - `package_version`: `2.4.2` for a normal release or `2.4.2_1` for `revision 1`
+- `release_tag`: optional GitHub tag/release name and bottle `root_url` tag; defaults to `package_version`
 - `prerelease`: keep the default `true` for the first run
 
 The workflow validates that the base part of `package_version` matches the manually set upstream tag in `Formula/globalplatform.rb`. For example, `package_version: 2.4.2_1` requires `tag: "2.4.2"` in the formula.
+
+If you want to test bottling without changing the Homebrew package version, keep `package_version` at the real package version and use a different `release_tag`, e.g.:
+
+- `package_version`: `2.4.2`
+- `release_tag`: `2.4.2-b1`
+- `prerelease`: `true`
+
+This creates a separate GitHub prerelease and bottle `root_url` while keeping the Homebrew package version at `2.4.2`.
+
+For this kind of bottling smoke test, run the workflow from a temporary branch. The workflow commits the resulting bottle `root_url` back into the branch it was started from.
 
 ## Finalize the Release
 
