@@ -137,7 +137,9 @@ jobs:
           set -euo pipefail
           effective_release_tag="${RELEASE_TAG:-$PACKAGE_VERSION}"
           root_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${effective_release_tag}"
-          brew test-bot --only-formulae --root-url="$root_url" --tap="$TAP" "$FORMULA"
+          brew install --build-bottle --formula "$FORMULA"
+          brew test "$FORMULA"
+          brew bottle --json --no-rebuild --root-url="$root_url" "$FORMULA"
 
       - name: Validate source build on non-bottling runners
         if: ${{ !matrix.produces_bottle }}
