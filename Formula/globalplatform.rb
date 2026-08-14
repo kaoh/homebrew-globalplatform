@@ -3,16 +3,11 @@ require "open3"
 class Globalplatform < Formula
   desc "C library + command-line for Open- / GlobalPlatform smart cards"
   homepage "https://kaoh.github.io/globalplatform/"
-  url "https://github.com/kaoh/globalplatform.git", tag: "2.4.2"
-  revision 1
+  url "https://github.com/kaoh/globalplatform.git", tag: "3.0.0"
   head "https://github.com/kaoh/globalplatform.git", branch: "master"
 
   bottle do
-    root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/2.4.2_1"
-    sha256 cellar: :any,                 arm64_tahoe:   "b5bb1078195d3db9b4efe76bd2ef8b10d4f9166cb5fc7d2ca6faacab606a0aa8"
-    sha256 cellar: :any,                 arm64_sequoia: "d2d87bbd578d4b913b63ded47e86295c88b0ee913a90606ea94a13ce48d33018"
-    sha256 cellar: :any,                 arm64_sonoma:  "be4cb5a14c6b782d5e2186173a0f2afaa8dccd79bb75cbb68269d5e6ce618ce3"
-    sha256 cellar: :any_skip_relocation, x86_64_linux:  "c514614bc0e48639704a67a8763d178593f4ef4627bcb77c533c95869e7fb004"
+    root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/3.0.0"
   end
 
   depends_on "cmake" => :build
@@ -40,20 +35,16 @@ class Globalplatform < Formula
     if OS.mac?
       rpath = lib.to_s
       MachO::Tools.add_rpath (bin/"gpshell").to_s, rpath
+      MachO::Tools.add_rpath (bin/"gpshell3").to_s, rpath
       MachO::Tools.add_rpath (lib/"libgppcscconnectionplugin.1.dylib").to_s, rpath
     end
     resign_macos_binaries if OS.mac?
   end
 
   test do
-    (testpath/"test-script.txt").write <<~EOS
-      enable_trace
-      establish_context
-      release_context
-    EOS
-    oe, _status = Open3.capture2e("#{bin}/gpshell", "test-script.txt")
+    oe, _status = Open3.capture2e("#{bin}/gpshell3", "--help")
     puts oe
-    assert_match(/0x8010001D/, oe)
+    assert_match(/gpshell3/, oe)
   end
 
   private
