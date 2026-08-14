@@ -17,7 +17,7 @@ class Globalplatform < Formula
   depends_on "graphviz" => :build
   depends_on "groff" => :build
   depends_on "pandoc" => :build
-  depends_on "pkg-config" => :build
+  depends_on "pkgconf" => :build
   depends_on "openssl@3"
 
   on_linux do
