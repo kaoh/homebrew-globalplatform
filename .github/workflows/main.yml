@@ -125,8 +125,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          brew test-bot --only-cleanup-before
-          brew test-bot --only-setup
           brew test-bot --only-tap-syntax --tap="$TAP"
 
       - name: Build bottles
