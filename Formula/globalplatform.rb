@@ -12,10 +12,6 @@ class Globalplatform < Formula
 
   depends_on "cmake" => :build
   depends_on "cmocka" => :build
-  depends_on "doxygen" => :build
-  depends_on "ghostscript" => :build
-  depends_on "graphviz" => :build
-  depends_on "groff" => :build
   depends_on "pandoc" => :build
   depends_on "pkgconf" => :build
   depends_on "openssl@3"
@@ -30,7 +26,6 @@ class Globalplatform < Formula
     system "cmake", ".", "-DTESTING=ON", *std_cmake_args
     system "make", "install"
     system "make", "test"
-    system "make", "doc"
     system "make", "install", "MANDIR=#{man}"
     if OS.mac?
       rpath = lib.to_s
