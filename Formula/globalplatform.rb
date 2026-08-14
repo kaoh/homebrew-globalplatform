@@ -8,6 +8,10 @@ class Globalplatform < Formula
 
   bottle do
     root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/3.0.0"
+    sha256 cellar: :any, arm64_tahoe:   "beff38563b7b9e19a41d9c7b33a9d18219d554e6a2993ce8faea0495e36646ef"
+    sha256 cellar: :any, arm64_sequoia: "24d45971cec6a7aeafecbe25a859f499cbf4d54a49dd7d49f984fbf20d006167"
+    sha256 cellar: :any, arm64_sonoma:  "764f8855a1b9816248b774badbb2d8508dd9ef3cc911a13c2a306d2a1233f991"
+    sha256 cellar: :any, x86_64_linux:  "338a213702cf0c1386d5c456296e36841a4f471098490a2f360b816e3a3ce951"
   end
 
   depends_on "cmake" => :build
