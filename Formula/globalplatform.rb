@@ -140,8 +140,9 @@ class Globalplatform < Formula
         fi
 
         pcsc_library_dir="${pcsc_library%/*}"
-        export LD_LIBRARY_PATH="$pcsc_library_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-        exec "#{libexec/name}" "$@"
+        exec "#{HOMEBREW_PREFIX}/lib/ld.so" \\
+          --library-path "#{formula_opt_lib("glibc")}:#{HOMEBREW_PREFIX}/lib:$pcsc_library_dir" \\
+          "#{libexec/name}" "$@"
       SH
       executable.chmod 0755
     end
