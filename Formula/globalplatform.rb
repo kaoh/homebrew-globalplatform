@@ -22,8 +22,6 @@ class Globalplatform < Formula
   depends_on "openssl@3"
 
   on_linux do
-    # CMake omits distribution library directories from installed RPATHs.
-    depends_on "patchelf" => :build
     # Homebrew's OpenSSL bottle requires a newer glibc than Ubuntu 22.04.
     depends_on "glibc"
     # Homebrew Linux linkage checking now attributes libz to zlib-ng-compat.
@@ -67,8 +65,9 @@ class Globalplatform < Formula
                 "INCLUDE(FindPackageHandleStandardArgs)",
                 "set(PCSC_LIBRARIES \"#{system_pcsc_library}\")\n\nINCLUDE(FindPackageHandleStandardArgs)"
       ENV.append "CFLAGS", "-isystem/usr/include/PCSC"
-      cmake_args << "-DCMAKE_BUILD_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib"
-      cmake_args << "-DCMAKE_INSTALL_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib"
+      cmake_args << "-DCMAKE_BUILD_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib;#{system_pcsc_library.dirname}"
+      cmake_args << "-DCMAKE_INSTALL_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib;" \
+                    "#{system_pcsc_library.dirname}"
       cmake_args << "-DPKG_CONFIG_EXECUTABLE=#{system_pkg_config}"
     end
 
@@ -76,20 +75,7 @@ class Globalplatform < Formula
     system "make", "install"
     system "make", "test"
     system "make", "install", "MANDIR=#{man}"
-    if OS.linux?
-      # The Homebrew glibc loader does not search Ubuntu's default library
-      # directories. Add the PC/SC directory after CMake's final RPATH rewrite.
-      rpath_targets = [bin/"gpshell", bin/"gpshell3", lib/"libglobalplatform.so",
-                       lib/"libgppcscconnectionplugin.so"]
-                      .select(&:exist?)
-                      .map(&:realpath)
-                      .uniq
-      rpath_targets.each do |target|
-        system HOMEBREW_PREFIX/"lib/ld.so", formula_opt_bin("patchelf")/"patchelf",
-               "--force-rpath", "--add-rpath",
-               system_pcsc_library.dirname, target
-      end
-    end
+    install_linux_pcsc_launchers if OS.linux?
     if OS.mac?
       rpath = lib.to_s
       MachO::Tools.add_rpath (bin/"gpshell").to_s, rpath
@@ -123,6 +109,43 @@ class Globalplatform < Formula
   end
 
   private
+
+  def install_linux_pcsc_launchers
+    %w[gpshell gpshell3].each do |name|
+      executable = bin/name
+      libexec.install executable
+      executable.write <<~SH
+        #!/bin/sh
+        set -eu
+
+        pcsc_library=""
+        for candidate in "${PCSCLITE_LIBRARY:-}" \\
+          /usr/lib/x86_64-linux-gnu/libpcsclite.so.1 \\
+          /lib/x86_64-linux-gnu/libpcsclite.so.1 \\
+          /usr/lib/aarch64-linux-gnu/libpcsclite.so.1 \\
+          /lib/aarch64-linux-gnu/libpcsclite.so.1 \\
+          /usr/lib64/libpcsclite.so.1 \\
+          /lib64/libpcsclite.so.1 \\
+          /usr/lib/libpcsclite.so.1 \\
+          /lib/libpcsclite.so.1; do
+          if [ -r "$candidate" ]; then
+            pcsc_library="$candidate"
+            break
+          fi
+        done
+
+        if [ -z "$pcsc_library" ]; then
+          echo "gpshell requires the distribution libpcsclite.so.1 library." >&2
+          exit 127
+        fi
+
+        pcsc_library_dir="${pcsc_library%/*}"
+        export LD_LIBRARY_PATH="$pcsc_library_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+        exec "#{libexec/name}" "$@"
+      SH
+      executable.chmod 0755
+    end
+  end
 
   def resign_macos_binaries
     targets = Dir[lib/"**/*.{dylib,so,bundle}", bin/"*"]
