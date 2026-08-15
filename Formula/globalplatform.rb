@@ -56,6 +56,7 @@ class Globalplatform < Formula
         ).strip,
       )/"libpcsclite.so"
       odie "The distribution PC/SC development library is missing." unless system_pcsc_library.exist?
+      homebrew_glibc_lib = formula_opt_lib("glibc")
       inreplace "globalplatform/cmake_modules/FindPCSC.cmake",
                 "PKG_CHECK_MODULES(PCSC libpcsclite)",
                 "PKG_CHECK_MODULES(PCSC NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH libpcsclite)"
@@ -63,8 +64,9 @@ class Globalplatform < Formula
                 "INCLUDE(FindPackageHandleStandardArgs)",
                 "set(PCSC_LIBRARIES \"#{system_pcsc_library}\")\n\nINCLUDE(FindPackageHandleStandardArgs)"
       ENV.append "CFLAGS", "-isystem/usr/include/PCSC"
-      cmake_args << "-DCMAKE_BUILD_RPATH=#{HOMEBREW_PREFIX}/lib;#{system_pcsc_library.dirname}"
-      cmake_args << "-DCMAKE_INSTALL_RPATH=#{HOMEBREW_PREFIX}/lib;#{system_pcsc_library.dirname}"
+      cmake_args << "-DCMAKE_BUILD_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib;#{system_pcsc_library.dirname}"
+      cmake_args << "-DCMAKE_INSTALL_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib;" \
+                    "#{system_pcsc_library.dirname}"
       cmake_args << "-DPKG_CONFIG_EXECUTABLE=#{system_pkg_config}"
     end
 

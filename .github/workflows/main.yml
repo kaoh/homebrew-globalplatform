@@ -184,8 +184,9 @@ jobs:
             exit 1
           fi
 
+          glibc_lib="$(brew --prefix glibc)/lib"
           libc_line="$(ldd "$plugin" | grep 'libc.so.6' || true)"
-          if [[ "$libc_line" != *"$HOMEBREW_PREFIX/lib"* ]]; then
+          if [[ "$libc_line" != *"$glibc_lib"* ]]; then
             echo "Homebrew glibc must precede the distribution PC/SC client: $libc_line"
             exit 1
           fi
