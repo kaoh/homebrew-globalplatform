@@ -29,6 +29,9 @@ class Globalplatform < Formula
     cmake_args = ["-DTESTING=ON", *std_cmake_args]
     if OS.linux?
       system_pkg_config = "/usr/bin/pkg-config"
+      # setup-homebrew constrains pkg-config to Homebrew kegs. The PC/SC
+      # client must come from the distribution, so restore its default paths.
+      ENV.delete "PKG_CONFIG_LIBDIR"
       pcsc_available = File.executable?(system_pkg_config) &&
                        system(system_pkg_config, "--exists", "libpcsclite")
       unless pcsc_available
