@@ -29,14 +29,40 @@ class Globalplatform < Formula
     cmake_args = ["-DTESTING=ON", *std_cmake_args]
     if OS.linux?
       system_pkg_config = "/usr/bin/pkg-config"
-      # setup-homebrew constrains pkg-config to Homebrew kegs. The PC/SC
-      # client must come from the distribution, so restore its default paths.
-      ENV.delete "PKG_CONFIG_LIBDIR"
-      pcsc_available = File.executable?(system_pkg_config) &&
-                       system(system_pkg_config, "--exists", "libpcsclite")
-      unless pcsc_available
+      # Homebrew's build environment has no distribution pkg-config paths.
+      # Use the host search path for PC/SC while retaining Homebrew's
+      # PKG_CONFIG_PATH entries for formula dependencies.
+      system_pkg_config_libdir = Utils.safe_popen_read(
+        { "PKG_CONFIG_LIBDIR" => nil, "PKG_CONFIG_PATH" => nil },
+        system_pkg_config, "--variable=pc_path", "pkg-config"
+      ).strip
+      ENV["PKG_CONFIG_LIBDIR"] = system_pkg_config_libdir
+      homebrew_pkg_config_paths = ENV.fetch("PKG_CONFIG_PATH", "").split(File::PATH_SEPARATOR)
+      ENV["PKG_CONFIG_PATH"] = homebrew_pkg_config_paths.grep_v(%r{(?:^|/)pcsc-lite(?:/|$)}).join(File::PATH_SEPARATOR)
+      begin
+        Utils.safe_popen_read(
+          { "PKG_CONFIG_LIBDIR" => system_pkg_config_libdir },
+          system_pkg_config, "--exists", "libpcsclite"
+        )
+      rescue ErrorDuringExecution
         odie "Install the distribution PC/SC development package, including libpcsclite.pc."
       end
+      system_pcsc_library = Pathname.new(
+        Utils.safe_popen_read(
+          { "PKG_CONFIG_LIBDIR" => system_pkg_config_libdir },
+          system_pkg_config, "--variable=libdir", "libpcsclite"
+        ).strip,
+      )/"libpcsclite.so"
+      odie "The distribution PC/SC development library is missing." unless system_pcsc_library.exist?
+      inreplace "globalplatform/cmake_modules/FindPCSC.cmake",
+                "PKG_CHECK_MODULES(PCSC libpcsclite)",
+                "PKG_CHECK_MODULES(PCSC NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH libpcsclite)"
+      inreplace "globalplatform/cmake_modules/FindPCSC.cmake",
+                "INCLUDE(FindPackageHandleStandardArgs)",
+                "set(PCSC_LIBRARIES \"#{system_pcsc_library}\")\n\nINCLUDE(FindPackageHandleStandardArgs)"
+      ENV.append "CFLAGS", "-isystem/usr/include/PCSC"
+      cmake_args << "-DCMAKE_BUILD_RPATH=#{HOMEBREW_PREFIX}/lib;#{system_pcsc_library.dirname}"
+      cmake_args << "-DCMAKE_INSTALL_RPATH=#{HOMEBREW_PREFIX}/lib;#{system_pcsc_library.dirname}"
       cmake_args << "-DPKG_CONFIG_EXECUTABLE=#{system_pkg_config}"
     end
 
@@ -70,8 +96,9 @@ class Globalplatform < Formula
   end
 
   test do
-    oe, _status = Open3.capture2e("#{bin}/gpshell3", "--help")
+    oe, status = Open3.capture2e("#{bin}/gpshell3", "--help")
     puts oe
+    assert_predicate status, :success?
     assert_match(/gpshell3/, oe)
   end
 
