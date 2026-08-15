@@ -21,13 +21,23 @@ class Globalplatform < Formula
   depends_on "openssl@3"
 
   on_linux do
-    depends_on "pcsc-lite"
     # Homebrew Linux linkage checking now attributes libz to zlib-ng-compat.
     depends_on "zlib-ng-compat"
   end
 
   def install
-    system "cmake", ".", "-DTESTING=ON", *std_cmake_args
+    cmake_args = ["-DTESTING=ON", *std_cmake_args]
+    if OS.linux?
+      system_pkg_config = "/usr/bin/pkg-config"
+      pcsc_available = File.executable?(system_pkg_config) &&
+                       system(system_pkg_config, "--exists", "libpcsclite")
+      unless pcsc_available
+        odie "Install the distribution PC/SC development package, including libpcsclite.pc."
+      end
+      cmake_args << "-DPKG_CONFIG_EXECUTABLE=#{system_pkg_config}"
+    end
+
+    system "cmake", ".", *cmake_args
     system "make", "install"
     system "make", "test"
     system "make", "install", "MANDIR=#{man}"
@@ -38,6 +48,22 @@ class Globalplatform < Formula
       MachO::Tools.add_rpath (lib/"libgppcscconnectionplugin.1.dylib").to_s, rpath
     end
     resign_macos_binaries if OS.mac?
+  end
+
+  def caveats
+    return unless OS.linux?
+
+    <<~EOS
+      GPShell uses the distribution's PC/SC service and reader drivers on Linux.
+      Do not link Homebrew's pcsc-lite while using this formula. If it was
+      installed by an older formula version, run: brew unlink pcsc-lite
+
+      On Debian/Ubuntu, install and enable the distribution service with:
+        sudo apt install pcscd libpcsclite1 libccid
+        sudo systemctl enable --now pcscd.socket
+
+      Source builds also require libpcsclite-dev and pkg-config.
+    EOS
   end
 
   test do

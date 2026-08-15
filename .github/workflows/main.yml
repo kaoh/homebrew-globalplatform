@@ -64,6 +64,14 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install Linux PC/SC development files
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libpcsclite-dev pkg-config
+
       - name: Link tap into Homebrew
         shell: bash
         run: |
@@ -140,6 +148,33 @@ jobs:
           brew install --build-bottle --formula "$FORMULA"
           brew test "$FORMULA"
           brew bottle --json --no-rebuild --root-url="$root_url" "$FORMULA"
+
+      - name: Validate Linux system PC/SC linkage
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          keg_prefix="$(brew --prefix "$FORMULA")"
+          for target in \
+            "$keg_prefix/bin/gpshell3" \
+            "$keg_prefix/lib/libgppcscconnectionplugin.so"; do
+            test -e "$target"
+            if readelf -d "$target" | grep -Fq "$HOMEBREW_PREFIX/opt/pcsc-lite"; then
+              echo "Homebrew pcsc-lite RPATH found in $target"
+              exit 1
+            fi
+          done
+
+          plugin="$keg_prefix/lib/libgppcscconnectionplugin.so"
+          pcsclite_line="$(ldd "$plugin" | grep 'libpcsclite.so.1' || true)"
+          if [[ -z "$pcsclite_line" || "$pcsclite_line" == *"not found" ]]; then
+            echo "Missing distribution PC/SC linkage for $plugin"
+            exit 1
+          fi
+          if [[ "$pcsclite_line" == *"$HOMEBREW_PREFIX"* ]]; then
+            echo "Homebrew pcsc-lite must not be used by $plugin: $pcsclite_line"
+            exit 1
+          fi
 
       - name: Validate source build on non-bottling runners
         if: ${{ !matrix.produces_bottle }}
