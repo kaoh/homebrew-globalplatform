@@ -21,6 +21,8 @@ class Globalplatform < Formula
   depends_on "openssl@3"
 
   on_linux do
+    # Homebrew's OpenSSL bottle requires a newer glibc than Ubuntu 22.04.
+    depends_on "glibc"
     # Homebrew Linux linkage checking now attributes libz to zlib-ng-compat.
     depends_on "zlib-ng-compat"
   end
