@@ -149,14 +149,6 @@ jobs:
           brew test "$FORMULA"
           brew bottle --json --no-rebuild --root-url="$root_url" "$FORMULA"
 
-      - name: Show CTest failures
-        if: ${{ failure() && matrix.produces_bottle }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          find /var/tmp -path '*globalplatform*/Testing/Temporary/LastTest.log' \
-            -print -exec cat {} \; || true
-
       - name: Validate Linux system PC/SC linkage
         if: runner.os == 'Linux'
         shell: bash
