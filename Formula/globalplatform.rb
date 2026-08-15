@@ -4,15 +4,15 @@ class Globalplatform < Formula
   desc "C library + command-line for Open- / GlobalPlatform smart cards"
   homepage "https://kaoh.github.io/globalplatform/"
   url "https://github.com/kaoh/globalplatform.git", tag: "3.0.0"
-  revision 1
+  revision 2
   head "https://github.com/kaoh/globalplatform.git", branch: "master"
 
   bottle do
-    root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/3.0.0_1"
-    sha256 cellar: :any, arm64_tahoe:   "31ac7fe32e545ec234f5dfdfe4e84b03b3b326ff0cb5d4b0d8e759a93eaeb68b"
-    sha256 cellar: :any, arm64_sequoia: "a8e6961a8c5eb632a0ba3db572c2ed9c297ca73bf95d4dfb0484492cd5cf53d4"
-    sha256 cellar: :any, arm64_sonoma:  "b31b87d6dd46f9ac005b31608961ed57b7afaab0440e6501f180f9176c7f1032"
-    sha256 cellar: :any, x86_64_linux:  "5638fc584c403da46275c9c8909853247800872e58a4688201d5db22042cbed4"
+    root_url "https://github.com/kaoh/homebrew-globalplatform/releases/download/3.0.0_2"
+    sha256 cellar: :any, arm64_tahoe:   "558f7f8876f7a69a9ffc335fbf1f0dec19a8212bad9a4703d468d1104ea7f331"
+    sha256 cellar: :any, arm64_sequoia: "e61dcd56a75554c9cf7c72ad1f62a1421c0dcb82caf3ec9fe561adcd85446538"
+    sha256 cellar: :any, arm64_sonoma:  "8cacf6e31fcbbfd4d9309f15bc03969f5857eed2053b412e40ffe675807720d9"
+    sha256 cellar: :any, x86_64_linux:  "e7ce7d52c78463a77f6e0dd5f54fbf1ea67880255d93eb3848266f644a6f0fd4"
   end
 
   depends_on "cmake" => :build
