@@ -56,30 +56,6 @@ Arch Linux:
 
 Consult your distribution for any other steps, e.g., to enable `pcsc-lite` as a service if this was forgotten by the package maintainer and is not included here already.
 
-### Remove Homebrew's Version of `pcsc-lite`
-
-If the version of `pcsc-lite` does not match the version of your system you might
-get:
-
-> establish_context failed with error 0x8010001D (Service not available.)
-
-In this case the Homebrew's version must be unlinked if there is no chance to upgrade your distribution's version. The background of this error is a change in the internal protocol version e.g. between versions 1.9.0 and 1.8.x.
-
-To check the version compare the versions with:
-
-~~~shell
-sudo $(brew --prefix pcsc-lite)/sbin/pcscd --version
-sudo pcscd --version
-~~~
-
-Under Linux the Homebrew version of `pcsc-lite` must be unlinked:
-
-~~~shell
-    brew remove --ignore-dependencies pcsc-lite
-~~~
-
-__NOTE:__ This will remove the version, in case other package are requiring it they will also fallback to the distribution's version. If `pcsc-lite` is reinstalled this step must be repeated if there still is an internal protocol version mismatch.
-
 # Developer Information
 
 ## Prepare a Release
