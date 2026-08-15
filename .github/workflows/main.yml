@@ -145,9 +145,17 @@ jobs:
           set -euo pipefail
           effective_release_tag="${RELEASE_TAG:-$PACKAGE_VERSION}"
           root_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${effective_release_tag}"
-          brew install --build-bottle --formula "$FORMULA"
+          brew install --build-bottle --keep-tmp --formula "$FORMULA"
           brew test "$FORMULA"
           brew bottle --json --no-rebuild --root-url="$root_url" "$FORMULA"
+
+      - name: Show CTest output
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          find /var/tmp -path '*globalplatform*/Testing/Temporary/LastTest.log' \
+            -print -exec cat {} \; || true
 
       - name: Validate Linux system PC/SC linkage
         if: runner.os == 'Linux'
