@@ -22,6 +22,8 @@ class Globalplatform < Formula
   depends_on "openssl@3"
 
   on_linux do
+    # CMake omits distribution library directories from installed RPATHs.
+    depends_on "patchelf" => :build
     # Homebrew's OpenSSL bottle requires a newer glibc than Ubuntu 22.04.
     depends_on "glibc"
     # Homebrew Linux linkage checking now attributes libz to zlib-ng-compat.
@@ -65,9 +67,8 @@ class Globalplatform < Formula
                 "INCLUDE(FindPackageHandleStandardArgs)",
                 "set(PCSC_LIBRARIES \"#{system_pcsc_library}\")\n\nINCLUDE(FindPackageHandleStandardArgs)"
       ENV.append "CFLAGS", "-isystem/usr/include/PCSC"
-      cmake_args << "-DCMAKE_BUILD_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib;#{system_pcsc_library.dirname}"
-      cmake_args << "-DCMAKE_INSTALL_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib;" \
-                    "#{system_pcsc_library.dirname}"
+      cmake_args << "-DCMAKE_BUILD_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib"
+      cmake_args << "-DCMAKE_INSTALL_RPATH=#{homebrew_glibc_lib};#{HOMEBREW_PREFIX}/lib"
       cmake_args << "-DPKG_CONFIG_EXECUTABLE=#{system_pkg_config}"
     end
 
@@ -75,6 +76,20 @@ class Globalplatform < Formula
     system "make", "install"
     system "make", "test"
     system "make", "install", "MANDIR=#{man}"
+    if OS.linux?
+      # The Homebrew glibc loader does not search Ubuntu's default library
+      # directories. Add the PC/SC directory after CMake's final RPATH rewrite.
+      rpath_targets = [bin/"gpshell", bin/"gpshell3", lib/"libglobalplatform.so",
+                       lib/"libgppcscconnectionplugin.so"]
+                      .select(&:exist?)
+                      .map(&:realpath)
+                      .uniq
+      rpath_targets.each do |target|
+        system HOMEBREW_PREFIX/"lib/ld.so", formula_opt_bin("patchelf")/"patchelf",
+               "--force-rpath", "--add-rpath",
+               system_pcsc_library.dirname, target
+      end
+    end
     if OS.mac?
       rpath = lib.to_s
       MachO::Tools.add_rpath (bin/"gpshell").to_s, rpath

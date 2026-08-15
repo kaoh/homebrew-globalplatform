@@ -164,33 +164,42 @@ jobs:
           set -euo pipefail
           homebrew_prefix="$(brew --prefix)"
           keg_prefix="$(brew --prefix "$FORMULA")"
+          system_pcsc_libdir="$(env -u PKG_CONFIG_LIBDIR -u PKG_CONFIG_PATH \
+            -u PKG_CONFIG_SYSROOT_DIR -u PKG_CONFIG_SYSTEM_LIBRARY_PATH \
+            -u PKG_CONFIG_SYSTEM_INCLUDE_PATH /usr/bin/pkg-config --variable=libdir libpcsclite)"
+          system_pcsc_library="$system_pcsc_libdir/libpcsclite.so.1"
+          loader="$homebrew_prefix/lib/ld.so"
+          test -x "$loader"
+          test -f "$system_pcsc_library"
+
           for target in \
             "$keg_prefix/bin/gpshell3" \
+            "$keg_prefix/lib/libglobalplatform.so" \
             "$keg_prefix/lib/libgppcscconnectionplugin.so"; do
             test -e "$target"
             if readelf -d "$target" | grep -Fq "$homebrew_prefix/opt/pcsc-lite"; then
               echo "Homebrew pcsc-lite RPATH found in $target"
               exit 1
             fi
+            if ! readelf -d "$target" | grep -Fq "$system_pcsc_libdir"; then
+              echo "Distribution PC/SC RPATH missing from $target"
+              exit 1
+            fi
           done
 
-          plugin="$keg_prefix/lib/libgppcscconnectionplugin.so"
-          pcsclite_line="$(ldd "$plugin" | grep 'libpcsclite.so.1' || true)"
-          if [[ -z "$pcsclite_line" || "$pcsclite_line" == *"not found" ]]; then
-            echo "Missing distribution PC/SC linkage for $plugin"
+          loader_output="$("$loader" --list "$keg_prefix/lib/libgppcscconnectionplugin.so" 2>&1)"
+          printf '%s\n' "$loader_output"
+          if [[ "$loader_output" != *"libpcsclite.so.1 => $system_pcsc_library"* ]]; then
+            echo "Homebrew loader did not resolve distribution PC/SC"
             exit 1
           fi
-          if [[ "$pcsclite_line" == *"$homebrew_prefix"* ]]; then
-            echo "Homebrew pcsc-lite must not be used by $plugin: $pcsclite_line"
+          if [[ "$loader_output" == *"$homebrew_prefix/opt/pcsc-lite"* || "$loader_output" == *"not found"* ]]; then
+            echo "Homebrew loader resolved an invalid PC/SC dependency"
             exit 1
           fi
 
-          glibc_lib="$(brew --prefix glibc)/lib"
-          libc_line="$(ldd "$plugin" | grep 'libc.so.6' || true)"
-          if [[ "$libc_line" != *"$glibc_lib"* ]]; then
-            echo "Homebrew glibc must precede the distribution PC/SC client: $libc_line"
-            exit 1
-          fi
+          env -i HOME="$HOME" PATH="$homebrew_prefix/bin:/usr/bin:/bin" \
+            "$keg_prefix/bin/gpshell3" --help >/dev/null
 
       - name: Validate source build on non-bottling runners
         if: ${{ !matrix.produces_bottle }}
